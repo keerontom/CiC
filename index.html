@@ -588,15 +588,31 @@ body {
 
   calculate();
   // ── iOS KEYBOARD SCROLL FIX ───────────────────────────
-// When the iOS keyboard appears it resizes the visualViewport
-// and scrolls the page up. This snaps it back instantly.
-if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", function() {
-    window.scrollTo(0, 0);
+
+// 1. Block ALL touch scrolling on the page itself,
+//    but allow it inside the ledger table only
+document.addEventListener("touchmove", function(e) {
+  var ledger = document.querySelector(".ledger-wrap");
+  if (ledger && ledger.contains(e.target)) {
+    return; // let the ledger scroll freely
+  }
+  e.preventDefault();
+}, { passive: false });
+
+// 2. When any input is focused, wait for the iOS keyboard
+//    to finish animating (300ms), THEN snap back to top
+var inputs = document.querySelectorAll("input, select");
+for (var i = 0; i < inputs.length; i++) {
+  inputs[i].addEventListener("focus", function() {
+    setTimeout(function() {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 300);
   });
 }
 
-// Belt-and-suspenders: kill any scroll that gets through
+// 3. Belt-and-suspenders: kill any scroll that sneaks through
 window.addEventListener("scroll", function() {
   window.scrollTo(0, 0);
 });
