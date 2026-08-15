@@ -389,7 +389,7 @@
                 <option value="1">Annually</option>
                 <option value="2">Semi-Annually</option>
                 <option value="4">Quarterly</option>
-                <option value="12">Monthly</option>
+                <option value="12"> selected>Monthly</option>
                 <option value="365">Daily</option>
               </select>
             </div>
@@ -662,7 +662,7 @@ function applyDefaults(switchToCalc) {
     var d = stored ? JSON.parse(stored) : {
       principal : "1,070,000",
       rate      : "7.00",
-      compound  : "1",
+      compound  : "12",
       duration  : "5",
       addition  : "625",
       addFreq   : "12",
