@@ -4,38 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Compound Calculator</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Compound" />
+  <link rel="manifest" href="manifest.json" />
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html {
-  height: 100%;
-  overflow: hidden;
-}
 
-body {
-  position: fixed;        /* ← the real iOS scroll killer */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f2f2f7;
-  display: flex;
-  justify-content: center;
-  padding: 12px 12px 30px 12px;
-}
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f2f2f7;
+      display: flex;
+      justify-content: center;
+      padding: 12px 12px 30px 12px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
 
     .wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: 100%;          /* ← add this */
-  gap: 10px;
-  overflow: hidden;      /* ← add this */
-}
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      gap: 10px;
+      overflow: hidden;
+    }
 
     /* ── TABS ── */
     .tabs {
@@ -210,13 +212,13 @@ body {
 
     /* ── LEDGER ── */
     .ledger-wrap {
-  width: 100%;
-  background: #fff;
-  border-radius: 12px;
-  overflow-y: auto;  /* ← change from "hidden" to "auto" */
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-  max-height: 70vh;  /* ← add this so it has a defined boundary to scroll within */
-}
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      overflow-y: auto;
+      max-height: 70vh;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    }
 
     .ledger-header {
       background: #4a5568;
@@ -460,7 +462,6 @@ body {
   });
 
   // ── FORMAT ON BLUR ONLY ───────────────────────────────
-  // Guard flag prevents formatField from ever re-triggering itself
   var formatting = false;
 
   function formatField(id) {
@@ -481,105 +482,96 @@ body {
   }
 
   // ── CALCULATE ─────────────────────────────────────────
- function calculate() {
-  var P       = getField("principal");
-  var r       = parseFloat(document.getElementById("rate").value) / 100 || 0;
-  var n       = parseInt(document.getElementById("compound").value);
-  var t       = parseInt(document.getElementById("duration").value) || 0;
-  var pmt     = getField("addition") * addSign;
-  var pmtFreq = parseInt(document.getElementById("addFreq").value);
-  var timing  = document.getElementById("addTiming").value;
+  function calculate() {
+    var P       = getField("principal");
+    var r       = parseFloat(document.getElementById("rate").value) / 100 || 0;
+    var n       = parseInt(document.getElementById("compound").value);
+    var t       = parseInt(document.getElementById("duration").value) || 0;
+    var pmt     = getField("addition") * addSign;
+    var pmtFreq = parseInt(document.getElementById("addFreq").value);
+    var timing  = document.getElementById("addTiming").value;
 
-  if (!n || n < 1) { return; }
+    if (!n || n < 1) { return; }
 
-  // Effective rate per compounding period
-  var ratePerPeriod = r / n;
+    var ratePerPeriod        = r / n;
+    var effectiveRatePerPmt  = Math.pow(1 + ratePerPeriod, n / pmtFreq) - 1;
 
-  // Effective rate per PAYMENT period — correct when frequencies differ
-  var effectiveRatePerPayment = Math.pow(1 + ratePerPeriod, n / pmtFreq) - 1;
+    var balance        = P;
+    var totalAdditions = 0;
+    var totalInterest  = 0;
+    var rows           = [];
 
-  var balance        = P;
-  var totalAdditions = 0;
-  var totalInterest  = 0;
-  var rows           = [];
-
-  for (var year = 1; year <= t; year++) {
-    var opening       = balance;
-    var yearInterest  = 0;
-    var yearAdditions = 0;
-
-    // Number of payment periods within this year
-    var paymentsThisYear = pmtFreq;
-
-    for (var p = 0; p < paymentsThisYear; p++) {
+    for (var year = 1; year <= t; year++) {
+      var opening       = balance;
+      var yearInterest  = 0;
+      var yearAdditions = 0;
       var interest;
-      if (timing === "start") {
-        // Payment at start of payment period, then compound
-        balance       += pmt;
-        yearAdditions += pmt;
-        interest       = balance * effectiveRatePerPayment;
-        balance       += interest;
-        yearInterest  += interest;
-      } else {
-        // Compound first, then payment at end of payment period
-        interest       = balance * effectiveRatePerPayment;
-        balance       += interest;
-        yearInterest  += interest;
-        balance       += pmt;
-        yearAdditions += pmt;
+
+      for (var p = 0; p < pmtFreq; p++) {
+        if (timing === "start") {
+          balance       += pmt;
+          yearAdditions += pmt;
+          interest       = balance * effectiveRatePerPmt;
+          balance       += interest;
+          yearInterest  += interest;
+        } else {
+          interest       = balance * effectiveRatePerPmt;
+          balance       += interest;
+          yearInterest  += interest;
+          balance       += pmt;
+          yearAdditions += pmt;
+        }
       }
+
+      totalAdditions += yearAdditions;
+      totalInterest  += yearInterest;
+      rows.push({
+        year: year,
+        opening: opening,
+        yearAdditions: yearAdditions,
+        yearInterest: yearInterest,
+        closing: balance
+      });
     }
 
-    totalAdditions += yearAdditions;
-    totalInterest  += yearInterest;
-    rows.push({
-      year: year,
-      opening: opening,
-      yearAdditions: yearAdditions,
-      yearInterest: yearInterest,
-      closing: balance
-    });
+    document.getElementById("res-ending").textContent    = fmt(balance);
+    document.getElementById("res-interest").textContent  = fmt(totalInterest);
+    document.getElementById("res-additions").textContent = fmt(totalAdditions);
+    document.getElementById("ledger-title").textContent  = t + " YEARS";
+
+    var tbody = document.getElementById("ledger-body");
+    tbody.innerHTML = "";
+
+    for (var k = 0; k < rows.length; k++) {
+      var row   = rows[k];
+      var trTop = document.createElement("tr");
+      trTop.className = "row-top";
+      trTop.innerHTML =
+        '<td class="year-num" rowspan="2">' + row.year + '.</td>' +
+        '<td class="center-col">' + fmt(row.yearAdditions) + '</td>' +
+        '<td class="right-col">'  + fmt(row.opening)       + '</td>';
+      var trBot = document.createElement("tr");
+      trBot.className = "row-bot";
+      trBot.innerHTML =
+        '<td class="center-col">'       + fmt(row.yearInterest) + '</td>' +
+        '<td class="right-col ending">' + fmt(row.closing)      + '</td>';
+      tbody.appendChild(trTop);
+      tbody.appendChild(trBot);
+    }
+
+    document.getElementById("ledger-foot").innerHTML =
+      '<tr>' +
+        '<td>Total</td>' +
+        '<td class="center-col">' + fmt(totalAdditions + totalInterest) + '</td>' +
+        '<td class="right-col">'  + fmt(balance) + '</td>' +
+      '</tr>';
   }
-
-  document.getElementById("res-ending").textContent    = fmt(balance);
-  document.getElementById("res-interest").textContent  = fmt(totalInterest);
-  document.getElementById("res-additions").textContent = fmt(totalAdditions);
-  document.getElementById("ledger-title").textContent  = t + " YEARS";
-
-  var tbody = document.getElementById("ledger-body");
-  tbody.innerHTML = "";
-
-  for (var k = 0; k < rows.length; k++) {
-    var row   = rows[k];
-    var trTop = document.createElement("tr");
-    trTop.className = "row-top";
-    trTop.innerHTML =
-      '<td class="year-num" rowspan="2">' + row.year + '.</td>' +
-      '<td class="center-col">' + fmt(row.yearAdditions) + '</td>' +
-      '<td class="right-col">'  + fmt(row.opening)       + '</td>';
-    var trBot = document.createElement("tr");
-    trBot.className = "row-bot";
-    trBot.innerHTML =
-      '<td class="center-col">'       + fmt(row.yearInterest) + '</td>' +
-      '<td class="right-col ending">' + fmt(row.closing)      + '</td>';
-    tbody.appendChild(trTop);
-    tbody.appendChild(trBot);
-  }
-
-  document.getElementById("ledger-foot").innerHTML =
-    '<tr>' +
-      '<td>Total</td>' +
-      '<td class="center-col">' + fmt(totalAdditions + totalInterest) + '</td>' +
-      '<td class="right-col">'  + fmt(balance) + '</td>' +
-    '</tr>';
-}
 
   // ── EVENT LISTENERS ───────────────────────────────────
   document.getElementById("principal").addEventListener("input", calculate);
   document.getElementById("principal").addEventListener("blur",  function() { formatField("principal"); });
-
-  document.getElementById("addition").addEventListener("input", calculate);
-  document.getElementById("addition").addEventListener("blur",  function() { formatField("addition"); });
+  document.getElementById("addition").addEventListener("input",  calculate);
+  document.getElementById("addition").addEventListener("blur",   function() { formatField("addition"); });
 
   var otherInputs = document.querySelectorAll("input:not(#principal):not(#addition), select");
   for (var i = 0; i < otherInputs.length; i++) {
@@ -587,29 +579,6 @@ body {
   }
 
   calculate();
-  // ── iOS KEYBOARD SCROLL FIX ───────────────────────────
-if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", function() {
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-  });
-  window.visualViewport.addEventListener("scroll", function() {
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-  });
-}
-
-window.addEventListener("scroll", function() {
-  window.scrollTo(0, 0);
-});
-
-document.addEventListener("touchmove", function(e) {
-  var ledger = document.querySelector(".ledger-wrap");
-  if (ledger && ledger.contains(e.target)) { return; }
-  e.preventDefault();
-}, { passive: false });
 </script>
 </body>
 </html>
