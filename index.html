@@ -60,7 +60,13 @@
     }
 
     .tab-btn.active { background: #4a5568; color: #fff; }
+/* Tab inactive background hierarchy: Calculator > Ledger > Defaults */
+.tab-btn.calc-tab           { background: #e8eaed; } /* lightest */
+/* Ledger stays at default  { background: #d1d5db; }    middle   */
+.tab-btn.defaults-tab       { background: #c5cad4; } /* darkest  */
 
+/* Active states unchanged */
+.tab-btn.calc-tab.active    { background: #4a5568; color: #fff; }
     /* Defaults tab gets a slightly different inactive colour */
     .tab-btn.defaults-tab { background: #c5cad4; }
     .tab-btn.defaults-tab.active { background: #2d3748; }
@@ -342,10 +348,10 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active"       onclick="switchTab('calculator', this)">Calculator</button>
-    <button class="tab-btn"              onclick="switchTab('ledger', this)">Ledger</button>
-    <button class="tab-btn defaults-tab" onclick="switchTab('defaults', this)">Defaults</button>
-    <button class="reset-btn"            onclick="applyDefaults()">↺</button>
+    <button class="tab-btn calc-tab active"  onclick="switchTab('calculator', this)">Calculator</button>
+    <button class="tab-btn"                  onclick="switchTab('ledger', this)">Ledger</button>
+    <button class="tab-btn defaults-tab"     onclick="switchTab('defaults', this)">Defaults</button>
+    <button class="reset-btn"                onclick="applyDefaults()">↺</button>
   </div>
 
   <!-- ══════════════════════════════
