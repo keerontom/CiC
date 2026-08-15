@@ -587,6 +587,19 @@ body {
   }
 
   calculate();
+  // ── iOS KEYBOARD SCROLL FIX ───────────────────────────
+// When the iOS keyboard appears it resizes the visualViewport
+// and scrolls the page up. This snaps it back instantly.
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", function() {
+    window.scrollTo(0, 0);
+  });
+}
+
+// Belt-and-suspenders: kill any scroll that gets through
+window.addEventListener("scroll", function() {
+  window.scrollTo(0, 0);
+});
 </script>
 </body>
 </html>
