@@ -577,7 +577,36 @@
   for (var i = 0; i < otherInputs.length; i++) {
     otherInputs[i].addEventListener("input", calculate);
   }
+// ── GREY-OUT & CLEAR ON FOCUS ─────────────────────────
+var allInputs = document.querySelectorAll("input");
+for (var f = 0; f < allInputs.length; f++) {
+  (function(el) {
+    var savedValue = "";
+    var cleared    = false;
 
+    el.addEventListener("focus", function() {
+      savedValue = el.value;
+      cleared    = false;
+      el.style.color = "#c0c0c8"; // grey out existing value
+    });
+
+    el.addEventListener("keydown", function() {
+      if (!cleared) {
+        cleared    = true;
+        el.value   = "";
+        el.style.color = "#1c1c1e"; // restore normal color on first keystroke
+      }
+    });
+
+    el.addEventListener("blur", function() {
+      el.style.color = "#1c1c1e";
+      if (el.value.trim() === "") {
+        el.value = savedValue; // nothing typed — restore original
+        calculate();
+      }
+    });
+  })(allInputs[f]);
+}
   calculate();
 </script>
 </body>
