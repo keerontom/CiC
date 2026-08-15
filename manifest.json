@@ -1,0 +1,15 @@
+{
+  "name": "Compound Calculator",
+  "short_name": "Compound",
+  "display": "standalone",
+  "start_url": ".",
+  "background_color": "#f2f2f7",
+  "theme_color": "#4a5568",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/4a5568/ffffff?text=C",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
