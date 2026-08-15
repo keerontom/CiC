@@ -639,15 +639,16 @@
   function loadDefaultsIntoPanel() {
     var stored = localStorage.getItem("calcDefaults");
     var d = stored ? JSON.parse(stored) : {
-      principal : "1,000",
-      rate      : "2.75",
+      principal : "1,070,000",
+      rate      : "7.00",
       compound  : "12",
-      duration  : "15",
-      addition  : "50",
+      duration  : "5",
+      addition  : "625",
       addFreq   : "12",
       addTiming : "end",
       addSign   : 1
     };
+    // ... rest of function unchanged
 
     document.getElementById("def-principal").value  = d.principal;
     document.getElementById("def-rate").value       = d.rate;
