@@ -787,6 +787,13 @@ function applyDefaults(switchToCalc) {
   // ── EVENT LISTENERS ───────────────────────────────────
   document.getElementById("principal").addEventListener("input", calculate);
   document.getElementById("principal").addEventListener("blur",  function() { formatField("principal"); });
+  document.getElementById("rate").addEventListener("blur", function() {
+  var num = parseFloat(this.value);
+  if (!isNaN(num)) {
+    this.value = num.toFixed(2);
+  }
+  calculate();
+});
   document.getElementById("addition").addEventListener("input",  calculate);
   document.getElementById("addition").addEventListener("blur",   function() { formatField("addition"); });
 
