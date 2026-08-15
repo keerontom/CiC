@@ -64,7 +64,20 @@
     /* Defaults tab gets a slightly different inactive colour */
     .tab-btn.defaults-tab { background: #c5cad4; }
     .tab-btn.defaults-tab.active { background: #2d3748; }
+.reset-btn {
+  width: 42px;
+  min-width: 42px;
+  padding: 10px;
+  background: #b0b7c3;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
 
+.reset-btn:active { background: #8a939f; }
     /* ── TAB PANELS ── */
     .tab-panel {
       display: none;
@@ -329,9 +342,10 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active"     onclick="switchTab('calculator', this)">Calculator</button>
-    <button class="tab-btn"            onclick="switchTab('ledger', this)">Ledger</button>
+    <button class="tab-btn active"       onclick="switchTab('calculator', this)">Calculator</button>
+    <button class="tab-btn"              onclick="switchTab('ledger', this)">Ledger</button>
     <button class="tab-btn defaults-tab" onclick="switchTab('defaults', this)">Defaults</button>
+    <button class="reset-btn"            onclick="applyDefaults()">↺</button>
   </div>
 
   <!-- ══════════════════════════════
@@ -547,7 +561,7 @@
 
     <div class="defaults-actions">
       <button class="action-btn save"  onclick="saveDefaults()">💾 Save Defaults</button>
-      <button class="action-btn apply" onclick="applyDefaults()">↺ Apply to Calc</button>
+      <button class="action-btn apply" onclick="applyDefaults(true)">↺ Apply to Calc</button>
     </div>
 
   </div><!-- /tab-defaults -->
@@ -611,7 +625,7 @@
     setTimeout(function() { btn.textContent = "💾 Save Defaults"; }, 1500);
   }
 
-  function applyDefaults() {
+function applyDefaults(switchToCalc) {
     var stored = localStorage.getItem("calcDefaults");
     if (!stored) { return; }
     var d = JSON.parse(stored);
@@ -631,9 +645,10 @@
 
     calculate();
 
-    // Switch back to Calculator tab automatically
-    var calcBtn = document.querySelector(".tab-btn");
-    switchTab("calculator", calcBtn);
+    if (switchToCalc) {
+      var calcBtn = document.querySelector(".tab-btn");
+      switchTab("calculator", calcBtn);
+    }
   }
 
   function loadDefaultsIntoPanel() {
