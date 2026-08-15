@@ -63,6 +63,20 @@
     }
 
     .tab-btn.active { background: #4a5568; color: #fff; }
+    .reset-btn {
+  width: 42px;
+  min-width: 42px;
+  padding: 10px;
+  background: #b0b7c3;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
+.reset-btn:active { background: #8a939f; }
+
 
     /* ── TAB PANELS ── */
     .tab-panel {
@@ -296,6 +310,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('calculator', this)">Calculator</button>
     <button class="tab-btn"        onclick="switchTab('ledger', this)">Annual Ledger</button>
+    <button class="reset-btn"      onclick="resetAll()">↺</button>
   </div>
 
   <!-- ══════════════════════════════
@@ -448,7 +463,24 @@
     document.getElementById("tab-" + name).classList.add("active");
     btn.classList.add("active");
   }
+// ── RESET ─────────────────────────────────────────────
+function resetAll() {
+  document.getElementById("principal").value = "1,000";
+  document.getElementById("rate").value      = "2.75";
+  document.getElementById("compound").value  = "12";
+  document.getElementById("duration").value  = "15";
+  document.getElementById("addition").value  = "50";
+  document.getElementById("addFreq").value   = "12";
+  document.getElementById("addTiming").value = "end";
 
+  // Reset the +/− sign button
+  addSign = 1;
+  var pmBtn = document.getElementById("pm-btn");
+  pmBtn.textContent = "+";
+  pmBtn.classList.remove("negative");
+
+  calculate();
+}
   // ── SIGN TOGGLE ───────────────────────────────────────
   document.getElementById("pm-btn").addEventListener("click", function () {
     addSign *= -1;
