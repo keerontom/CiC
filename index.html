@@ -16,14 +16,16 @@
             background: #f2f2f7;
             display: flex;
             flex-direction: column;
-            padding: 8px 12px 0;
+            /* top safe area pushes content below notch; right/left unchanged; bottom 0 */
+            padding: calc(8px + constant(safe-area-inset-top)) 12px 0;
+            padding: calc(8px + env(safe-area-inset-top)) 12px 0;
             height: 100%;
             overflow: hidden;
             overscroll-behavior: none;
         }
         .hidden { display: none !important; }
 
-        /* wrapper leaves room for fixed bar + home indicator */
+        /* wrapper leaves room for fixed bottom bar + home indicator */
         .wrapper {
             display: flex;
             flex-direction: column;
@@ -96,7 +98,6 @@
         .scenario-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            /* grow to cover the home indicator */
             height: calc(40px + constant(safe-area-inset-bottom));
             height: calc(40px + env(safe-area-inset-bottom));
             display: flex;
@@ -110,7 +111,7 @@
             font-weight: 600;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            /* push label text above the home indicator */
+            /* push label text above home indicator */
             padding-bottom: constant(safe-area-inset-bottom);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -448,7 +449,7 @@
             return rawNum(document.getElementById(id).value);
         }
 
-        /* ── scenario order for carry-forward direction check ── */
+        /* ── scenario order (for carry-forward direction check) ── */
         var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
         var SCENARIOS      = ["working", "bridge", "retirement"];
 
@@ -476,12 +477,12 @@
         /* ── compute ending balance from a data object (pure, no DOM) ── */
         function calcEndingBalance(d) {
             var P       = rawNum(d.principal);
-            var r       = (parseFloat(d.rate)      || 0) / 100;
-            var n       = parseInt(d.compound)      || 1;
-            var t       = parseInt(d.duration)      || 0;
-            var pmt     = rawNum(d.addition)        * (d.addSign || 1);
-            var pmtFreq = parseInt(d.addFreq)       || 12;
-            var timing  = d.addTiming               || "end";
+            var r       = (parseFloat(d.rate)   || 0) / 100;
+            var n       = parseInt(d.compound)  || 1;
+            var t       = parseInt(d.duration)  || 0;
+            var pmt     = rawNum(d.addition)    * (d.addSign || 1);
+            var pmtFreq = parseInt(d.addFreq)   || 12;
+            var timing  = d.addTiming           || "end";
             var rPP     = r / n;
             var pmtPP   = pmt * pmtFreq / n;
             var bal     = P;
@@ -499,7 +500,7 @@
             return bal;
         }
 
-        /* ── save DOM → scenarioData + localStorage (called only on tab switch) ── */
+        /* ── save DOM → scenarioData + localStorage (only on tab switch) ── */
         function saveScenarioData() {
             var d       = scenarioData[activeScenario];
             d.principal = document.getElementById("principal").value;
@@ -533,14 +534,14 @@
         function switchScenario(newScenario) {
             if (newScenario === activeScenario) return;
 
-            // 1. Persist current DOM values before leaving
+            // 1. Persist current DOM into memory + localStorage
             saveScenarioData();
 
             var prevScenario = activeScenario;
             activeScenario   = newScenario;
 
-            // 2. Moving FORWARD in the chain? Always carry ending balance as new principal.
-            //    Moving BACKWARD? Restore whatever was saved — user's own values stay intact.
+            // 2. Moving FORWARD → always carry ending balance as new principal
+            //    Moving BACKWARD → restore saved values (user edits preserved)
             if (SCENARIO_ORDER[newScenario] > SCENARIO_ORDER[prevScenario]) {
                 var bal = calcEndingBalance(scenarioData[prevScenario]);
                 scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits: 2 });
@@ -581,15 +582,15 @@
             document.getElementById("defaults-disabled-msg").classList.toggle("hidden",  isWorking);
         }
 
-        /* ── main calculation (reads DOM, does NOT write to scenarioData) ── */
+        /* ── main calculation (reads DOM only, never writes to scenarioData) ── */
         function calculate() {
             var P       = getField("principal");
-            var r       = (parseFloat(document.getElementById("rate").value)     || 0) / 100;
-            var n       = parseInt(document.getElementById("compound").value)    || 1;
-            var t       = parseInt(document.getElementById("duration").value)    || 0;
+            var r       = (parseFloat(document.getElementById("rate").value)  || 0) / 100;
+            var n       = parseInt(document.getElementById("compound").value) || 1;
+            var t       = parseInt(document.getElementById("duration").value) || 0;
             var addSign = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
             var pmt     = getField("addition") * addSign;
-            var pmtFreq = parseInt(document.getElementById("addFreq").value)     || 12;
+            var pmtFreq = parseInt(document.getElementById("addFreq").value)  || 12;
             var timing  = document.getElementById("addTiming").value;
 
             var rPP    = r / n;
@@ -722,13 +723,13 @@
         /* ── init ── */
         document.addEventListener("DOMContentLoaded", function() {
 
-            // Restore localStorage — strip any stale `visited` flags
+            // Restore localStorage — strip any stale visited flags
             SCENARIOS.forEach(function(s) {
                 var raw = localStorage.getItem(s + "_data");
                 if (raw) {
                     try {
                         var parsed = JSON.parse(raw);
-                        delete parsed.visited; // remove legacy flag
+                        delete parsed.visited;
                         scenarioData[s] = parsed;
                     } catch(e) {}
                 }
