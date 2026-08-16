@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Compound">
@@ -23,6 +23,7 @@
         }
         .hidden { display: none !important; }
 
+        /* wrapper leaves room for fixed bar + home indicator */
         .wrapper {
             display: flex;
             flex-direction: column;
@@ -30,7 +31,7 @@
             height: 100%;
             gap: 6px;
             overflow: hidden;
-            /* leave room for fixed bottom bar + safe area */
+            padding-bottom: calc(40px + constant(safe-area-inset-bottom));
             padding-bottom: calc(40px + env(safe-area-inset-bottom));
         }
 
@@ -94,10 +95,9 @@
         /* ── BOTTOM SCENARIO BAR ── */
         .scenario-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            /* height = tab area + safe area inset */
+            bottom: 0; left: 0; right: 0;
+            /* grow to cover the home indicator */
+            height: calc(40px + constant(safe-area-inset-bottom));
             height: calc(40px + env(safe-area-inset-bottom));
             display: flex;
             box-shadow: 0 -2px 8px rgba(0,0,0,.12);
@@ -110,12 +110,13 @@
             font-weight: 600;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            /* push label up above home indicator */
+            /* push label text above the home indicator */
+            padding-bottom: constant(safe-area-inset-bottom);
             padding-bottom: env(safe-area-inset-bottom);
         }
-        .scenario-btn[data-scenario="working"]       { background: #c8d8e8; color: #2c5f8a; }
-        .scenario-btn[data-scenario="bridge"]        { background: #c8e8d0; color: #2c6b45; }
-        .scenario-btn[data-scenario="retirement"]    { background: #e8d8c8; color: #7a4a2c; }
+        .scenario-btn[data-scenario="working"]    { background: #c8d8e8; color: #2c5f8a; }
+        .scenario-btn[data-scenario="bridge"]     { background: #c8e8d0; color: #2c6b45; }
+        .scenario-btn[data-scenario="retirement"] { background: #e8d8c8; color: #7a4a2c; }
         .scenario-btn.active { background: #4a5568; color: #fff; }
 
         /* ── CARDS ── */
@@ -130,10 +131,8 @@
         .card-header {
             background: #4a5568;
             color: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            font-size: 12px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
             padding: 7px 12px;
         }
         .card-header.defaults-header { background: #2d3748; }
@@ -170,8 +169,7 @@
             border-radius: 9px;
             border: 1.5px solid #68d391;
             background: #f0fff4;
-            font-size: 18px;
-            color: #2c7a4b;
+            font-size: 18px; color: #2c7a4b;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
@@ -218,9 +216,9 @@
             letter-spacing: 0.04em;
             line-height: 1.4;
         }
-        .ledger-table thead th:first-child { text-align: left; }
+        .ledger-table thead th:first-child  { text-align: left; }
         .ledger-table thead th:nth-child(2) { text-align: center; }
-        .ledger-table thead th:last-child { text-align: right; }
+        .ledger-table thead th:last-child   { text-align: right; }
         .row-top td { padding: 5px 12px 1px; border-top: 1px solid #e8e8ec; font-size: 13px; color: #1c1c1e; }
         .row-bot td { padding: 1px 12px 5px; font-size: 13px; color: #1c1c1e; }
         .year-num { font-size: 14px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
@@ -433,9 +431,9 @@
 
     <!-- BOTTOM SCENARIO TABS -->
     <div class="scenario-bar">
-        <button data-scenario="working" class="scenario-btn active" onclick="switchScenario('working')">Working Years</button>
-        <button data-scenario="bridge"  class="scenario-btn"        onclick="switchScenario('bridge')">Bridge Years</button>
-        <button data-scenario="retirement" class="scenario-btn"     onclick="switchScenario('retirement')">Retirement</button>
+        <button data-scenario="working"    class="scenario-btn active" onclick="switchScenario('working')">Working Years</button>
+        <button data-scenario="bridge"     class="scenario-btn"        onclick="switchScenario('bridge')">Bridge Years</button>
+        <button data-scenario="retirement" class="scenario-btn"        onclick="switchScenario('retirement')">Retirement</button>
     </div>
 
     <script>
@@ -450,21 +448,23 @@
             return rawNum(document.getElementById(id).value);
         }
 
+        /* ── scenario order for carry-forward direction check ── */
+        var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
+        var SCENARIOS      = ["working", "bridge", "retirement"];
+
         /* ── state ── */
         var activeScenario = "working";
-        var SCENARIOS = ["working", "bridge", "retirement"];
-
         var scenarioData = {
-            working:    { principal:"1,070,000", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1 },
-            bridge:     { principal:"", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false },
-            retirement: { principal:"", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false }
+            working:    { principal: "1,070,000", rate: "7.00", compound: "12", duration: "5", addition: "625", addFreq: "12", addTiming: "end", addSign: 1 },
+            bridge:     { principal: "",           rate: "7.00", compound: "12", duration: "5", addition: "625", addFreq: "12", addTiming: "end", addSign: 1 },
+            retirement: { principal: "",           rate: "7.00", compound: "12", duration: "5", addition: "625", addFreq: "12", addTiming: "end", addSign: 1 }
         };
 
         /* ── top tab tints per scenario ── */
         var TOP_TINTS = {
-            working:    { calc:"#dce8f0", ledger:"#ccdae6", defaults:"#c0d0dc" },
-            bridge:     { calc:"#dceee2", ledger:"#cce4d4", defaults:"#bcd8c8" },
-            retirement: { calc:"#f0e4d8", ledger:"#e8d8c8", defaults:"#dccab8" }
+            working:    { calc: "#dce8f0", ledger: "#ccdae6", defaults: "#c0d0dc" },
+            bridge:     { calc: "#dceee2", ledger: "#cce4d4", defaults: "#bcd8c8" },
+            retirement: { calc: "#f0e4d8", ledger: "#e8d8c8", defaults: "#dccab8" }
         };
         function updateTopTabTint() {
             var t = TOP_TINTS[activeScenario];
@@ -473,15 +473,15 @@
             document.querySelector(".defaults-tab").style.background = t.defaults;
         }
 
-        /* ── compute ending balance purely from a data object (no DOM) ── */
+        /* ── compute ending balance from a data object (pure, no DOM) ── */
         function calcEndingBalance(d) {
             var P       = rawNum(d.principal);
-            var r       = (parseFloat(d.rate) || 0) / 100;
-            var n       = parseInt(d.compound) || 1;
-            var t       = parseInt(d.duration) || 0;
-            var pmt     = rawNum(d.addition) * (d.addSign || 1);
-            var pmtFreq = parseInt(d.addFreq) || 12;
-            var timing  = d.addTiming || "end";
+            var r       = (parseFloat(d.rate)      || 0) / 100;
+            var n       = parseInt(d.compound)      || 1;
+            var t       = parseInt(d.duration)      || 0;
+            var pmt     = rawNum(d.addition)        * (d.addSign || 1);
+            var pmtFreq = parseInt(d.addFreq)       || 12;
+            var timing  = d.addTiming               || "end";
             var rPP     = r / n;
             var pmtPP   = pmt * pmtFreq / n;
             var bal     = P;
@@ -499,9 +499,9 @@
             return bal;
         }
 
-        /* ── save current DOM inputs into scenarioData (called only on tab switch) ── */
+        /* ── save DOM → scenarioData + localStorage (called only on tab switch) ── */
         function saveScenarioData() {
-            var d = scenarioData[activeScenario];
+            var d       = scenarioData[activeScenario];
             d.principal = document.getElementById("principal").value;
             d.rate      = document.getElementById("rate").value;
             d.compound  = document.getElementById("compound").value;
@@ -513,7 +513,7 @@
             localStorage.setItem(activeScenario + "_data", JSON.stringify(d));
         }
 
-        /* ── load a scenario's data into the DOM ── */
+        /* ── load scenarioData → DOM ── */
         function loadScenarioData(scenario) {
             var d = scenarioData[scenario];
             document.getElementById("principal").value = d.principal;
@@ -533,20 +533,20 @@
         function switchScenario(newScenario) {
             if (newScenario === activeScenario) return;
 
-            // 1. Snapshot current DOM values into in-memory store + localStorage
+            // 1. Persist current DOM values before leaving
             saveScenarioData();
 
             var prevScenario = activeScenario;
             activeScenario   = newScenario;
 
-            // 2. If new scenario never visited, seed its principal from prev ending balance
-            if (!scenarioData[newScenario].visited) {
+            // 2. Moving FORWARD in the chain? Always carry ending balance as new principal.
+            //    Moving BACKWARD? Restore whatever was saved — user's own values stay intact.
+            if (SCENARIO_ORDER[newScenario] > SCENARIO_ORDER[prevScenario]) {
                 var bal = calcEndingBalance(scenarioData[prevScenario]);
                 scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits: 2 });
-                scenarioData[newScenario].visited   = true;
             }
 
-            // 3. Push new scenario data into DOM
+            // 3. Push data into DOM
             loadScenarioData(newScenario);
 
             // 4. Update UI chrome
@@ -554,7 +554,7 @@
             updateTopTabTint();
             updateDefaultsPanel();
 
-            // 5. Run calculation for new scenario
+            // 5. Render results
             calculate();
         }
 
@@ -576,20 +576,20 @@
         /* ── defaults panel show/hide ── */
         function updateDefaultsPanel() {
             var isWorking = (activeScenario === "working");
-            document.getElementById("defaults-card").classList.toggle("hidden",    !isWorking);
-            document.getElementById("defaults-actions").classList.toggle("hidden", !isWorking);
-            document.getElementById("defaults-disabled-msg").classList.toggle("hidden", isWorking);
+            document.getElementById("defaults-card").classList.toggle("hidden",         !isWorking);
+            document.getElementById("defaults-actions").classList.toggle("hidden",      !isWorking);
+            document.getElementById("defaults-disabled-msg").classList.toggle("hidden",  isWorking);
         }
 
-        /* ── main calculation (reads DOM only, does NOT write back to scenarioData) ── */
+        /* ── main calculation (reads DOM, does NOT write to scenarioData) ── */
         function calculate() {
             var P       = getField("principal");
-            var r       = (parseFloat(document.getElementById("rate").value) || 0) / 100;
-            var n       = parseInt(document.getElementById("compound").value) || 1;
-            var t       = parseInt(document.getElementById("duration").value) || 0;
+            var r       = (parseFloat(document.getElementById("rate").value)     || 0) / 100;
+            var n       = parseInt(document.getElementById("compound").value)    || 1;
+            var t       = parseInt(document.getElementById("duration").value)    || 0;
             var addSign = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
             var pmt     = getField("addition") * addSign;
-            var pmtFreq = parseInt(document.getElementById("addFreq").value) || 12;
+            var pmtFreq = parseInt(document.getElementById("addFreq").value)     || 12;
             var timing  = document.getElementById("addTiming").value;
 
             var rPP    = r / n;
@@ -601,18 +601,17 @@
 
             for (var year = 1; year <= t; year++) {
                 var opening = bal;
-                var yAdd    = 0;
-                var yInt    = 0;
+                var yAdd = 0, yInt = 0;
                 for (var p = 0; p < n; p++) {
                     var interest;
                     if (timing === "start") {
-                        bal  += pmtPP; yAdd += pmtPP;
+                        bal += pmtPP;  yAdd += pmtPP;
                         interest = bal * rPP;
-                        bal  += interest; yInt += interest;
+                        bal += interest; yInt += interest;
                     } else {
                         interest = bal * rPP;
-                        bal  += interest; yInt += interest;
-                        bal  += pmtPP;    yAdd += pmtPP;
+                        bal += interest; yInt += interest;
+                        bal += pmtPP;    yAdd += pmtPP;
                     }
                 }
                 totAdd += yAdd;
@@ -644,9 +643,8 @@
 
         /* ── pm-btn toggles ── */
         function toggleAdditionSign() {
-            var btn    = document.getElementById("pm-btn");
-            var nowNeg = btn.classList.toggle("negative");
-            btn.textContent = nowNeg ? "−" : "+";
+            var btn = document.getElementById("pm-btn");
+            btn.textContent = btn.classList.toggle("negative") ? "−" : "+";
             calculate();
         }
         function toggleDefaultAdditionSign() {
@@ -664,8 +662,8 @@
 
         /* ── defaults ── */
         var FALLBACK = {
-            principal:"1,070,000", rate:"7.00", compound:"12", duration:"5",
-            addition:"625", addFreq:"12", addTiming:"end", addSign:1
+            principal: "1,070,000", rate: "7.00", compound: "12", duration: "5",
+            addition: "625", addFreq: "12", addTiming: "end", addSign: 1
         };
 
         function loadDefaultsIntoPanel() {
@@ -721,14 +719,18 @@
             if (activeScenario === "working") applyDefaults(true);
         }
 
-        /* ── DOMContentLoaded init ── */
+        /* ── init ── */
         document.addEventListener("DOMContentLoaded", function() {
 
-            // Restore localStorage into scenarioData
+            // Restore localStorage — strip any stale `visited` flags
             SCENARIOS.forEach(function(s) {
                 var raw = localStorage.getItem(s + "_data");
                 if (raw) {
-                    try { scenarioData[s] = JSON.parse(raw); } catch(e) {}
+                    try {
+                        var parsed = JSON.parse(raw);
+                        delete parsed.visited; // remove legacy flag
+                        scenarioData[s] = parsed;
+                    } catch(e) {}
                 }
             });
 
@@ -739,7 +741,7 @@
             updateTopTabTint();
             calculate();
 
-            /* grey-out UX: focus turns text grey, first keydown clears + restores colour */
+            /* grey-out UX on focus */
             document.querySelectorAll("input").forEach(function(input) {
                 var savedValue = "";
                 var cleared    = false;
@@ -763,25 +765,22 @@
                 });
             });
 
-            /* calculator input listeners */
+            /* calculator listeners */
             document.getElementById("principal").addEventListener("input", calculate);
             document.getElementById("principal").addEventListener("blur",  function() { formatField("principal"); });
-
             document.getElementById("addition").addEventListener("input",  calculate);
             document.getElementById("addition").addEventListener("blur",   function() { formatField("addition"); });
-
             document.getElementById("rate").addEventListener("blur", function() {
                 var v = parseFloat(this.value);
                 this.value = isNaN(v) ? "0.00" : v.toFixed(2);
                 calculate();
             });
-
             document.getElementById("compound").addEventListener("change",  calculate);
             document.getElementById("duration").addEventListener("input",   calculate);
             document.getElementById("addFreq").addEventListener("change",   calculate);
             document.getElementById("addTiming").addEventListener("change", calculate);
 
-            /* defaults input listeners */
+            /* defaults listeners */
             document.getElementById("def-principal").addEventListener("blur", function() { formatField("def-principal"); });
             document.getElementById("def-addition").addEventListener("blur",  function() { formatField("def-addition"); });
             document.getElementById("def-rate").addEventListener("blur", function() {
