@@ -10,72 +10,237 @@
     <title>Compounding Interest Calculator — KT</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { height:100%; overflow:hidden }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-               background:#f2f2f7; display:flex; flex-direction:column; padding:8px 12px 0; height:100%; overflow:hidden; overscroll-behavior:none }
+        html { height: 100%; overflow: hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f2f2f7;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 12px 0;
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
         .hidden { display: none !important; }
-        .wrapper { display:flex; flex-direction:column; width:100%; height:100%; gap:6px; overflow:hidden; padding-bottom:50px }
-        .app-title { text-align:center; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#4a5568; flex-shrink:0; line-height:1 }
-        .tabs { display:flex; width:100%; border-radius:9px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.12); flex-shrink:0 }
-        .tab-btn { flex:1; padding:10px 6px; border:none; font-size:13px; font-weight:600; color:#4a5568; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background 0.2s }
-        .tab-btn.calc-tab     { background:#e8eaed }
-        .tab-btn.ledger-tab   { background:#d1d5db }
-        .tab-btn.defaults-tab { background:#c5cad4 }
-        .tab-btn.active { background:#4a5568 !important; color:#fff }
-        .reset-btn { width:42px; min-width:42px; background:#b0b7c3; border:none; font-size:18px; color:#fff; cursor:pointer; -webkit-tap-highlight-color:transparent }
-        .tab-content { display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto; overflow-x:hidden }
-        .tab-content.hidden { display:none }
-        .scenario-bar { position:fixed; bottom:0; left:0; right:0; height:40px; display:flex; box-shadow:0 -2px 8px rgba(0,0,0,.12); z-index:100 }
-        .scenario-btn { flex:1; border:none; font-size:11px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent }
-        .scenario-btn[data-scenario="working"]       { background:#c8d8e8; color:#2c5f8a }
-        .scenario-btn[data-scenario="preretirement"] { background:#c8e8d0; color:#2c6b45 }
-        .scenario-btn[data-scenario="retirement"]    { background:#e8d8c8; color:#7a4a2c }
-        .scenario-btn.active { background:#4a5568; color:#fff }
-        .card { background:#fff; border-radius:12px; overflow:hidden; width:100%; box-shadow:0 1px 6px rgba(0,0,0,.1); flex-shrink:0 }
-        .card-header { background:#4a5568; color:#fff; font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:7px 12px }
-        .card-header.defaults-header { background:#2d3748 }
-        .input-table { width:100%; border-collapse:collapse; table-layout:fixed }
-        .input-table tr { border-bottom:1px solid #e8e8ec }
-        .input-table tr:last-child { border-bottom:none }
-        .input-table td { padding:6px 10px; vertical-align:middle }
-        td.label-cell { font-size:14px; color:#1c1c1e; white-space:nowrap; width:40% }
-        td.control-cell { width:60%; text-align:right }
-        .controls { display:flex; align-items:center; justify-content:flex-end; gap:5px; width:100% }
-        .input-box { border:1.5px solid #d1d1d6; border-radius:9px; padding:7px 8px; font-size:16px; text-align:right; color:#1c1c1e; background:#fff; outline:none; height:36px; width:100%; min-width:0; -webkit-appearance:none }
-        .input-box:focus { border-color:#4a5568 }
-        .input-box.medium { flex:1; width:auto }
-        select.input-box { appearance:none; -webkit-appearance:none; text-align-last:right; padding-right:6px }
-        .pm-btn { width:36px; min-width:36px; height:36px; border-radius:9px; border:1.5px solid #68d391; background:#f0fff4; font-size:18px; color:#2c7a4b; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; user-select:none; -webkit-tap-highlight-color:transparent }
-        .pm-btn.negative { background:#fff0f0; border-color:#e57373; color:#c0392b }
-        .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid #e8e8ec }
-        .result-row:last-child { border-bottom:none }
-        .result-label { font-size:14px; color:#636366 }
-        .result-value { font-size:15px; font-weight:600; color:#1c1c1e }
-        .result-value.highlight { color:#2c7a4b; font-size:18px }
-        .ledger-wrap { width:100%; background:#fff; border-radius:12px; overflow-y:auto; max-height:calc(100vh - 160px); box-shadow:0 1px 6px rgba(0,0,0,.1) }
-        .ledger-header { background:#4a5568; color:#fff; font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:7px 12px }
-        .ledger-table { width:100%; border-collapse:collapse }
-        .ledger-table thead tr { border-bottom:1px solid #d1d1d6 }
-        .ledger-table thead th { padding:6px 12px; font-size:11px; font-weight:600; color:#8e8e93; text-transform:uppercase; letter-spacing:0.04em; line-height:1.4 }
-        .ledger-table thead th:first-child { text-align:left }
-        .ledger-table thead th:nth-child(2) { text-align:center }
-        .ledger-table thead th:last-child { text-align:right }
-        .row-top td { padding:5px 12px 1px; border-top:1px solid #e8e8ec; font-size:13px; color:#1c1c1e }
-        .row-bot td { padding:1px 12px 5px; font-size:13px; color:#1c1c1e }
-        .year-num { font-size:14px; font-weight:600; color:#4a5568; text-align:left; vertical-align:middle }
-        .center-col { text-align:center }
-        .right-col { text-align:right }
-        .right-col.ending { font-weight:600 }
-        .ledger-table tfoot td { padding:8px 12px; border-top:2px solid #4a5568; font-weight:700; font-size:13px }
-        .ledger-table tfoot td:first-child { text-align:left; color:#4a5568 }
-        .defaults-actions { display:flex; gap:10px; width:100%; padding:4px 0 0 }
-        .action-btn { flex:1; height:42px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer }
-        .action-btn.save  { background:#2d3748; color:#fff }
-        .action-btn.apply { background:#68d391; color:#1c4731 }
-        .disabled-msg { text-align:center; padding:30px 14px; color:#8e8e93; font-size:14px; font-style:italic }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 6px;
+            overflow: hidden;
+            /* leave room for fixed bottom bar + safe area */
+            padding-bottom: calc(40px + env(safe-area-inset-bottom));
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #4a5568;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        /* ── TOP TABS ── */
+        .tabs {
+            display: flex;
+            width: 100%;
+            border-radius: 9px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s;
+        }
+        .tab-btn.calc-tab     { background: #e8eaed; }
+        .tab-btn.ledger-tab   { background: #d1d5db; }
+        .tab-btn.defaults-tab { background: #c5cad4; }
+        .tab-btn.active { background: #4a5568 !important; color: #fff; }
+        .reset-btn {
+            width: 42px; min-width: 42px;
+            background: #b0b7c3;
+            border: none;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ── PANELS ── */
+        .tab-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-content.hidden { display: none; }
+
+        /* ── BOTTOM SCENARIO BAR ── */
+        .scenario-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            /* height = tab area + safe area inset */
+            height: calc(40px + env(safe-area-inset-bottom));
+            display: flex;
+            box-shadow: 0 -2px 8px rgba(0,0,0,.12);
+            z-index: 100;
+        }
+        .scenario-btn {
+            flex: 1;
+            border: none;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            /* push label up above home indicator */
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .scenario-btn[data-scenario="working"]       { background: #c8d8e8; color: #2c5f8a; }
+        .scenario-btn[data-scenario="bridge"]        { background: #c8e8d0; color: #2c6b45; }
+        .scenario-btn[data-scenario="retirement"]    { background: #e8d8c8; color: #7a4a2c; }
+        .scenario-btn.active { background: #4a5568; color: #fff; }
+
+        /* ── CARDS ── */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: 0 1px 6px rgba(0,0,0,.1);
+            flex-shrink: 0;
+        }
+        .card-header {
+            background: #4a5568;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 7px 12px;
+        }
+        .card-header.defaults-header { background: #2d3748; }
+
+        /* ── INPUT TABLE ── */
+        .input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .input-table tr { border-bottom: 1px solid #e8e8ec; }
+        .input-table tr:last-child { border-bottom: none; }
+        .input-table td { padding: 6px 10px; vertical-align: middle; }
+        td.label-cell { font-size: 14px; color: #1c1c1e; white-space: nowrap; width: 40%; }
+        td.control-cell { width: 60%; text-align: right; }
+        .controls { display: flex; align-items: center; justify-content: flex-end; gap: 5px; width: 100%; }
+
+        .input-box {
+            border: 1.5px solid #d1d1d6;
+            border-radius: 9px;
+            padding: 7px 8px;
+            font-size: 16px;
+            text-align: right;
+            color: #1c1c1e;
+            background: #fff;
+            outline: none;
+            height: 36px;
+            width: 100%;
+            min-width: 0;
+            -webkit-appearance: none;
+        }
+        .input-box:focus { border-color: #4a5568; }
+        .input-box.medium { flex: 1; width: auto; }
+        select.input-box { appearance: none; -webkit-appearance: none; text-align-last: right; padding-right: 6px; }
+
+        .pm-btn {
+            width: 36px; min-width: 36px; height: 36px;
+            border-radius: 9px;
+            border: 1.5px solid #68d391;
+            background: #f0fff4;
+            font-size: 18px;
+            color: #2c7a4b;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pm-btn.negative { background: #fff0f0; border-color: #e57373; color: #c0392b; }
+
+        /* ── RESULTS ── */
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e8e8ec;
+        }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { font-size: 14px; color: #636366; }
+        .result-value { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+        .result-value.highlight { color: #2c7a4b; font-size: 18px; }
+
+        /* ── LEDGER ── */
+        .ledger-wrap {
+            width: 100%;
+            background: #fff;
+            border-radius: 12px;
+            overflow-y: auto;
+            max-height: calc(100vh - 160px);
+            box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        }
+        .ledger-header {
+            background: #4a5568; color: #fff;
+            font-size: 12px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            padding: 7px 12px;
+        }
+        .ledger-table { width: 100%; border-collapse: collapse; }
+        .ledger-table thead tr { border-bottom: 1px solid #d1d1d6; }
+        .ledger-table thead th {
+            padding: 6px 12px;
+            font-size: 11px; font-weight: 600;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+        }
+        .ledger-table thead th:first-child { text-align: left; }
+        .ledger-table thead th:nth-child(2) { text-align: center; }
+        .ledger-table thead th:last-child { text-align: right; }
+        .row-top td { padding: 5px 12px 1px; border-top: 1px solid #e8e8ec; font-size: 13px; color: #1c1c1e; }
+        .row-bot td { padding: 1px 12px 5px; font-size: 13px; color: #1c1c1e; }
+        .year-num { font-size: 14px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
+        .center-col { text-align: center; }
+        .right-col  { text-align: right; }
+        .right-col.ending { font-weight: 600; }
+        .ledger-table tfoot td { padding: 8px 12px; border-top: 2px solid #4a5568; font-weight: 700; font-size: 13px; }
+        .ledger-table tfoot td:first-child { text-align: left; color: #4a5568; }
+
+        /* ── DEFAULTS ── */
+        .defaults-actions { display: flex; gap: 10px; width: 100%; padding: 4px 0 0; }
+        .action-btn { flex: 1; height: 42px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .action-btn.save  { background: #2d3748; color: #fff; }
+        .action-btn.apply { background: #68d391; color: #1c4731; }
+        .disabled-msg { text-align: center; padding: 30px 14px; color: #8e8e93; font-size: 14px; font-style: italic; }
+
+        /* ── MISC ── */
         input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 }
-        input[type=number] { -moz-appearance:textfield }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body>
@@ -268,49 +433,53 @@
 
     <!-- BOTTOM SCENARIO TABS -->
     <div class="scenario-bar">
-        <button data-scenario="working"       class="scenario-btn active" onclick="switchScenario('working')">Working Years</button>
-        <button data-scenario="preretirement" class="scenario-btn"        onclick="switchScenario('preretirement')">Pre-Retirement</button>
-        <button data-scenario="retirement"    class="scenario-btn"        onclick="switchScenario('retirement')">Retirement</button>
+        <button data-scenario="working" class="scenario-btn active" onclick="switchScenario('working')">Working Years</button>
+        <button data-scenario="bridge"  class="scenario-btn"        onclick="switchScenario('bridge')">Bridge Years</button>
+        <button data-scenario="retirement" class="scenario-btn"     onclick="switchScenario('retirement')">Retirement</button>
     </div>
 
     <script>
         /* ── helpers ── */
         function fmt(n) {
-            return isNaN(n) ? "$0.00" : n.toLocaleString("en-CA", { style:"currency", currency:"CAD" });
+            return isNaN(n) ? "$0.00" : n.toLocaleString("en-CA", { style: "currency", currency: "CAD" });
+        }
+        function rawNum(str) {
+            return parseFloat((str || "0").replace(/,/g, "").replace(/\$/g, "")) || 0;
         }
         function getField(id) {
-            return parseFloat((document.getElementById(id).value || "0").replace(/,/g,"").replace(/\$/g,"")) || 0;
+            return rawNum(document.getElementById(id).value);
         }
 
         /* ── state ── */
         var activeScenario = "working";
-        var scenarioData = {
-            working:       { principal:"1,070,000", rate:"7.00", compound:"12", duration:"5",  addition:"625", addFreq:"12", addTiming:"end", addSign:1 },
-            preretirement: { principal:"",           rate:"7.00", compound:"12", duration:"5",  addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false },
-            retirement:    { principal:"",           rate:"7.00", compound:"12", duration:"5",  addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false }
-        };
-        var endingBalances = { working:0, preretirement:0, retirement:0 };
+        var SCENARIOS = ["working", "bridge", "retirement"];
 
-        /* ── top tab tint per scenario ── */
-        var topTabTints = {
-            working:       { calc:"#dce8f0", ledger:"#ccdae6", defaults:"#c0d0dc" },
-            preretirement: { calc:"#dceee2", ledger:"#cce4d4", defaults:"#bcd8c8" },
-            retirement:    { calc:"#f0e4d8", ledger:"#e8d8c8", defaults:"#dccab8" }
+        var scenarioData = {
+            working:    { principal:"1,070,000", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1 },
+            bridge:     { principal:"", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false },
+            retirement: { principal:"", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, visited:false }
+        };
+
+        /* ── top tab tints per scenario ── */
+        var TOP_TINTS = {
+            working:    { calc:"#dce8f0", ledger:"#ccdae6", defaults:"#c0d0dc" },
+            bridge:     { calc:"#dceee2", ledger:"#cce4d4", defaults:"#bcd8c8" },
+            retirement: { calc:"#f0e4d8", ledger:"#e8d8c8", defaults:"#dccab8" }
         };
         function updateTopTabTint() {
-            var t = topTabTints[activeScenario];
+            var t = TOP_TINTS[activeScenario];
             document.querySelector(".calc-tab").style.background     = t.calc;
             document.querySelector(".ledger-tab").style.background   = t.ledger;
             document.querySelector(".defaults-tab").style.background = t.defaults;
         }
 
-        /* ── calculate ending balance from scenario data object (no DOM) ── */
+        /* ── compute ending balance purely from a data object (no DOM) ── */
         function calcEndingBalance(d) {
-            var P       = parseFloat((d.principal || "0").replace(/,/g,"").replace(/\$/g,"")) || 0;
+            var P       = rawNum(d.principal);
             var r       = (parseFloat(d.rate) || 0) / 100;
             var n       = parseInt(d.compound) || 1;
             var t       = parseInt(d.duration) || 0;
-            var pmt     = (parseFloat((d.addition || "0").replace(/,/g,"").replace(/\$/g,"")) || 0) * (d.addSign || 1);
+            var pmt     = rawNum(d.addition) * (d.addSign || 1);
             var pmtFreq = parseInt(d.addFreq) || 12;
             var timing  = d.addTiming || "end";
             var rPP     = r / n;
@@ -330,117 +499,7 @@
             return bal;
         }
 
-        /* ── scenario switching ── */
-        function switchScenario(newScenario) {
-            saveScenarioData();
-            var prevScenario = activeScenario;
-            activeScenario = newScenario;
-
-            if (!scenarioData[newScenario].visited) {
-                var bal = calcEndingBalance(scenarioData[prevScenario]);
-                scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits:2 });
-                scenarioData[newScenario].visited = true;
-            }
-
-            loadScenarioData(newScenario);
-            updateScenarioTabs();
-            updateTopTabTint();
-            updateDefaultsPanel();
-            calculate();
-        }
-
-        function updateScenarioTabs() {
-            document.querySelectorAll(".scenario-btn").forEach(function(b) { b.classList.remove("active"); });
-            document.querySelector('[data-scenario="' + activeScenario + '"]').classList.add("active");
-        }
-
-        /* ── top tab switching ── */
-        function switchTopTab(name) {
-            document.querySelectorAll(".tab-content").forEach(function(p) { p.classList.add("hidden"); });
-            document.getElementById("panel-" + name).classList.remove("hidden");
-            document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-            var cls = name === "calculator" ? ".calc-tab" : name === "ledger" ? ".ledger-tab" : ".defaults-tab";
-            document.querySelector(cls).classList.add("active");
-            if (name === "defaults") updateDefaultsPanel();
-        }
-
-        /* ── defaults panel visibility ── */
-        function updateDefaultsPanel() {
-            var isWorking = (activeScenario === "working");
-            document.getElementById("defaults-card").classList.toggle("hidden", !isWorking);
-            document.getElementById("defaults-actions").classList.toggle("hidden", !isWorking);
-            document.getElementById("defaults-disabled-msg").classList.toggle("hidden", isWorking);
-        }
-
-        /* ── calculation ── */
-        function calculate() {
-            var P       = getField("principal");
-            var r       = (parseFloat(document.getElementById("rate").value) || 0) / 100;
-            var n       = parseInt(document.getElementById("compound").value) || 1;
-            var t       = parseInt(document.getElementById("duration").value) || 0;
-            var addSign = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
-            var pmt     = getField("addition") * addSign;
-            var pmtFreq = parseInt(document.getElementById("addFreq").value) || 12;
-            var timing  = document.getElementById("addTiming").value;
-
-            var ratePerPeriod = r / n;
-            var pmtPerPeriod  = pmt * pmtFreq / n;
-            var balance       = P;
-            var totalAdditions = 0;
-            var totalInterest  = 0;
-            var ledgerHTML     = "";
-
-            for (var year = 1; year <= t; year++) {
-                var opening = balance;
-                var yearAdd = 0;
-                var yearInt = 0;
-                for (var p = 0; p < n; p++) {
-                    var interest;
-                    if (timing === "start") {
-                        balance  += pmtPerPeriod;
-                        yearAdd  += pmtPerPeriod;
-                        interest  = balance * ratePerPeriod;
-                        balance  += interest;
-                        yearInt  += interest;
-                    } else {
-                        interest  = balance * ratePerPeriod;
-                        balance  += interest;
-                        yearInt  += interest;
-                        balance  += pmtPerPeriod;
-                        yearAdd  += pmtPerPeriod;
-                    }
-                }
-                totalAdditions += yearAdd;
-                totalInterest  += yearInt;
-                ledgerHTML +=
-                    '<tr class="row-top">' +
-                        '<td class="year-num" rowspan="2">' + year + '.</td>' +
-                        '<td class="center-col">' + fmt(yearAdd) + '</td>' +
-                        '<td class="right-col">'  + fmt(opening) + '</td>' +
-                    '</tr>' +
-                    '<tr class="row-bot">' +
-                        '<td class="center-col">'       + fmt(yearInt) + '</td>' +
-                        '<td class="right-col ending">' + fmt(balance) + '</td>' +
-                    '</tr>';
-            }
-
-            document.getElementById("res-additions").textContent = fmt(totalAdditions);
-            document.getElementById("res-interest").textContent  = fmt(totalInterest);
-            document.getElementById("res-ending").textContent    = fmt(balance);
-            document.getElementById("ledger-title").textContent  = t + " YEARS";
-            document.getElementById("ledger-body").innerHTML     = ledgerHTML;
-            document.getElementById("ledger-foot").innerHTML     =
-                '<tr>' +
-                    '<td>Total</td>' +
-                    '<td class="center-col">' + fmt(totalAdditions + totalInterest) + '</td>' +
-                    '<td class="right-col">'  + fmt(balance) + '</td>' +
-                '</tr>';
-
-            endingBalances[activeScenario] = balance;
-            saveScenarioData();
-        }
-
-        /* ── save / load scenario ── */
+        /* ── save current DOM inputs into scenarioData (called only on tab switch) ── */
         function saveScenarioData() {
             var d = scenarioData[activeScenario];
             d.principal = document.getElementById("principal").value;
@@ -454,6 +513,7 @@
             localStorage.setItem(activeScenario + "_data", JSON.stringify(d));
         }
 
+        /* ── load a scenario's data into the DOM ── */
         function loadScenarioData(scenario) {
             var d = scenarioData[scenario];
             document.getElementById("principal").value = d.principal;
@@ -469,9 +529,122 @@
             btn.textContent = isNeg ? "−" : "+";
         }
 
+        /* ── switch bottom scenario tab ── */
+        function switchScenario(newScenario) {
+            if (newScenario === activeScenario) return;
+
+            // 1. Snapshot current DOM values into in-memory store + localStorage
+            saveScenarioData();
+
+            var prevScenario = activeScenario;
+            activeScenario   = newScenario;
+
+            // 2. If new scenario never visited, seed its principal from prev ending balance
+            if (!scenarioData[newScenario].visited) {
+                var bal = calcEndingBalance(scenarioData[prevScenario]);
+                scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits: 2 });
+                scenarioData[newScenario].visited   = true;
+            }
+
+            // 3. Push new scenario data into DOM
+            loadScenarioData(newScenario);
+
+            // 4. Update UI chrome
+            updateScenarioTabs();
+            updateTopTabTint();
+            updateDefaultsPanel();
+
+            // 5. Run calculation for new scenario
+            calculate();
+        }
+
+        function updateScenarioTabs() {
+            document.querySelectorAll(".scenario-btn").forEach(function(b) { b.classList.remove("active"); });
+            document.querySelector('[data-scenario="' + activeScenario + '"]').classList.add("active");
+        }
+
+        /* ── switch top tab ── */
+        function switchTopTab(name) {
+            document.querySelectorAll(".tab-content").forEach(function(p) { p.classList.add("hidden"); });
+            document.getElementById("panel-" + name).classList.remove("hidden");
+            document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+            var cls = name === "calculator" ? ".calc-tab" : name === "ledger" ? ".ledger-tab" : ".defaults-tab";
+            document.querySelector(cls).classList.add("active");
+            if (name === "defaults") updateDefaultsPanel();
+        }
+
+        /* ── defaults panel show/hide ── */
+        function updateDefaultsPanel() {
+            var isWorking = (activeScenario === "working");
+            document.getElementById("defaults-card").classList.toggle("hidden",    !isWorking);
+            document.getElementById("defaults-actions").classList.toggle("hidden", !isWorking);
+            document.getElementById("defaults-disabled-msg").classList.toggle("hidden", isWorking);
+        }
+
+        /* ── main calculation (reads DOM only, does NOT write back to scenarioData) ── */
+        function calculate() {
+            var P       = getField("principal");
+            var r       = (parseFloat(document.getElementById("rate").value) || 0) / 100;
+            var n       = parseInt(document.getElementById("compound").value) || 1;
+            var t       = parseInt(document.getElementById("duration").value) || 0;
+            var addSign = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
+            var pmt     = getField("addition") * addSign;
+            var pmtFreq = parseInt(document.getElementById("addFreq").value) || 12;
+            var timing  = document.getElementById("addTiming").value;
+
+            var rPP    = r / n;
+            var pmtPP  = pmt * pmtFreq / n;
+            var bal    = P;
+            var totAdd = 0;
+            var totInt = 0;
+            var html   = "";
+
+            for (var year = 1; year <= t; year++) {
+                var opening = bal;
+                var yAdd    = 0;
+                var yInt    = 0;
+                for (var p = 0; p < n; p++) {
+                    var interest;
+                    if (timing === "start") {
+                        bal  += pmtPP; yAdd += pmtPP;
+                        interest = bal * rPP;
+                        bal  += interest; yInt += interest;
+                    } else {
+                        interest = bal * rPP;
+                        bal  += interest; yInt += interest;
+                        bal  += pmtPP;    yAdd += pmtPP;
+                    }
+                }
+                totAdd += yAdd;
+                totInt += yInt;
+                html +=
+                    '<tr class="row-top">' +
+                        '<td class="year-num" rowspan="2">' + year + '.</td>' +
+                        '<td class="center-col">' + fmt(yAdd)    + '</td>' +
+                        '<td class="right-col">'  + fmt(opening) + '</td>' +
+                    '</tr>' +
+                    '<tr class="row-bot">' +
+                        '<td class="center-col">'       + fmt(yInt) + '</td>' +
+                        '<td class="right-col ending">' + fmt(bal)  + '</td>' +
+                    '</tr>';
+            }
+
+            document.getElementById("res-additions").textContent = fmt(totAdd);
+            document.getElementById("res-interest").textContent  = fmt(totInt);
+            document.getElementById("res-ending").textContent    = fmt(bal);
+            document.getElementById("ledger-title").textContent  = t + " YEARS";
+            document.getElementById("ledger-body").innerHTML     = html;
+            document.getElementById("ledger-foot").innerHTML     =
+                '<tr>' +
+                    '<td>Total</td>' +
+                    '<td class="center-col">' + fmt(totAdd + totInt) + '</td>' +
+                    '<td class="right-col">'  + fmt(bal)             + '</td>' +
+                '</tr>';
+        }
+
         /* ── pm-btn toggles ── */
         function toggleAdditionSign() {
-            var btn = document.getElementById("pm-btn");
+            var btn    = document.getElementById("pm-btn");
             var nowNeg = btn.classList.toggle("negative");
             btn.textContent = nowNeg ? "−" : "+";
             calculate();
@@ -481,16 +654,19 @@
             btn.textContent = btn.classList.toggle("negative") ? "−" : "+";
         }
 
-        /* ── format fields ── */
+        /* ── format number fields on blur ── */
         function formatField(id) {
             var el  = document.getElementById(id);
-            var num = parseFloat((el.value || "0").replace(/,/g,"").replace(/\$/g,"")) || 0;
-            el.value = num.toLocaleString("en-CA", { maximumFractionDigits:2 });
+            var num = rawNum(el.value);
+            el.value = num.toLocaleString("en-CA", { maximumFractionDigits: 2 });
             calculate();
         }
 
         /* ── defaults ── */
-        var FALLBACK = { principal:"1,070,000", rate:"7.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1 };
+        var FALLBACK = {
+            principal:"1,070,000", rate:"7.00", compound:"12", duration:"5",
+            addition:"625", addFreq:"12", addTiming:"end", addSign:1
+        };
 
         function loadDefaultsIntoPanel() {
             var d = JSON.parse(localStorage.getItem("calcDefaults")) || FALLBACK;
@@ -545,22 +721,25 @@
             if (activeScenario === "working") applyDefaults(true);
         }
 
-        /* ── init ── */
+        /* ── DOMContentLoaded init ── */
         document.addEventListener("DOMContentLoaded", function() {
 
-            // Restore saved scenario data from localStorage
-            ["working","preretirement","retirement"].forEach(function(s) {
+            // Restore localStorage into scenarioData
+            SCENARIOS.forEach(function(s) {
                 var raw = localStorage.getItem(s + "_data");
-                if (raw) scenarioData[s] = JSON.parse(raw);
+                if (raw) {
+                    try { scenarioData[s] = JSON.parse(raw); } catch(e) {}
+                }
             });
 
             loadDefaultsIntoPanel();
             switchTopTab("calculator");
             loadScenarioData("working");
+            updateScenarioTabs();
             updateTopTabTint();
             calculate();
 
-            // Grey-out UX on all inputs
+            /* grey-out UX: focus turns text grey, first keydown clears + restores colour */
             document.querySelectorAll("input").forEach(function(input) {
                 var savedValue = "";
                 var cleared    = false;
@@ -580,27 +759,29 @@
                     input.style.color = "#1c1c1e";
                     if (input.value.trim() === "") {
                         input.value = savedValue;
-                        calculate();
                     }
                 });
             });
 
-            // Calculator listeners
+            /* calculator input listeners */
             document.getElementById("principal").addEventListener("input", calculate);
             document.getElementById("principal").addEventListener("blur",  function() { formatField("principal"); });
+
             document.getElementById("addition").addEventListener("input",  calculate);
             document.getElementById("addition").addEventListener("blur",   function() { formatField("addition"); });
+
             document.getElementById("rate").addEventListener("blur", function() {
                 var v = parseFloat(this.value);
                 this.value = isNaN(v) ? "0.00" : v.toFixed(2);
                 calculate();
             });
+
             document.getElementById("compound").addEventListener("change",  calculate);
             document.getElementById("duration").addEventListener("input",   calculate);
             document.getElementById("addFreq").addEventListener("change",   calculate);
             document.getElementById("addTiming").addEventListener("change", calculate);
 
-            // Defaults listeners
+            /* defaults input listeners */
             document.getElementById("def-principal").addEventListener("blur", function() { formatField("def-principal"); });
             document.getElementById("def-addition").addEventListener("blur",  function() { formatField("def-addition"); });
             document.getElementById("def-rate").addEventListener("blur", function() {
