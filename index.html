@@ -16,27 +16,28 @@
             background: #f2f2f7;
             display: flex;
             flex-direction: column;
-            padding: calc(8px + constant(safe-area-inset-top)) 12px 0;
-            padding: calc(8px + env(safe-area-inset-top)) 12px 0;
+            padding: calc(6px + constant(safe-area-inset-top)) 10px 0;
+            padding: calc(6px + env(safe-area-inset-top)) 10px 0;
             height: 100%;
             overflow: hidden;
             overscroll-behavior: none;
         }
         .hidden { display: none !important; }
+
         .wrapper {
             display: flex;
             flex-direction: column;
             width: 100%;
             height: 100%;
-            gap: 6px;
+            gap: 4px;                              /* tightened from 6px */
             overflow: hidden;
-            /* ── FIX: halved from 40px → 20px ── */
             padding-bottom: calc(20px + constant(safe-area-inset-bottom));
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
         }
+
         .app-title {
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
@@ -44,20 +45,21 @@
             flex-shrink: 0;
             line-height: 1;
         }
+
         /* ── TOP TABS ── */
         .tabs {
             display: flex;
             width: 100%;
-            border-radius: 9px;
+            border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 1px 4px rgba(0,0,0,.12);
             flex-shrink: 0;
         }
         .tab-btn {
             flex: 1;
-            padding: 10px 6px;
+            padding: 8px 4px;                      /* tightened from 10px */
             border: none;
-            font-size: 13px;
+            font-size: 12px;                       /* tightened from 13px */
             font-weight: 600;
             color: #4a5568;
             cursor: pointer;
@@ -69,26 +71,37 @@
         .tab-btn.defaults-tab { background: #c5cad4; }
         .tab-btn.active { background: #4a5568 !important; color: #fff; }
         .reset-btn {
-            width: 42px; min-width: 42px;
+            width: 38px; min-width: 38px;
             background: #b0b7c3;
             border: none;
-            font-size: 18px;
+            font-size: 16px;
             color: #fff;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
-        /* ── PANELS ── */
+
+        /* ── PANELS — overflow HIDDEN = zero scroll ── */
         .tab-content {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;                              /* tightened from 8px */
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;                      /* ← KEY FIX: was overflow-y: auto */
         }
         .tab-content.hidden { display: none; }
-        /* ── BOTTOM SCENARIO BAR — halved to 20px + safe area ── */
+
+        /* ledger is the only panel that should scroll internally */
+        .ledger-wrap {
+            width: 100%;
+            background: #fff;
+            border-radius: 10px;
+            overflow-y: auto;
+            flex: 1;
+            box-shadow: 0 1px 6px rgba(0,0,0,.1);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ── BOTTOM SCENARIO BAR ── */
         .scenario-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -101,7 +114,6 @@
         .scenario-btn {
             flex: 1;
             border: none;
-            /* ── FIX: tighter font to fit 20px bar ── */
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.02em;
@@ -114,41 +126,44 @@
         .scenario-btn[data-scenario="bridge"]     { background: #c8e8d0; color: #2c6b45; }
         .scenario-btn[data-scenario="retirement"] { background: #e8d8c8; color: #7a4a2c; }
         .scenario-btn.active { background: #4a5568; color: #fff; }
+
         /* ── CARDS ── */
         .card {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             width: 100%;
-            box-shadow: 0 1px 6px rgba(0,0,0,.1);
+            box-shadow: 0 1px 5px rgba(0,0,0,.1);
             flex-shrink: 0;
         }
         .card-header {
             background: #4a5568;
             color: #fff;
-            font-size: 12px; font-weight: 600;
+            font-size: 11px; font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 7px 12px;
+            padding: 5px 10px;                     /* tightened from 7px 12px */
         }
         .card-header.defaults-header { background: #2d3748; }
+
         /* ── INPUT TABLE ── */
         .input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .input-table tr { border-bottom: 1px solid #e8e8ec; }
         .input-table tr:last-child { border-bottom: none; }
-        .input-table td { padding: 6px 10px; vertical-align: middle; }
-        td.label-cell { font-size: 14px; color: #1c1c1e; white-space: nowrap; width: 40%; }
+        .input-table td { padding: 3px 8px; vertical-align: middle; } /* tightened from 6px 10px */
+        td.label-cell { font-size: 13px; color: #1c1c1e; white-space: nowrap; width: 40%; }
         td.control-cell { width: 60%; text-align: right; }
-        .controls { display: flex; align-items: center; justify-content: flex-end; gap: 5px; width: 100%; }
+        .controls { display: flex; align-items: center; justify-content: flex-end; gap: 4px; width: 100%; }
+
         .input-box {
             border: 1.5px solid #d1d1d6;
-            border-radius: 9px;
-            padding: 7px 8px;
-            font-size: 16px;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 15px;
             text-align: right;
             color: #1c1c1e;
             background: #fff;
             outline: none;
-            height: 36px;
+            height: 32px;                          /* tightened from 36px */
             width: 100%;
             min-width: 0;
             -webkit-appearance: none;
@@ -156,13 +171,14 @@
         .input-box:focus { border-color: #4a5568; }
         .input-box.medium { flex: 1; width: auto; }
         .input-box:disabled { background: #f5f5f7; color: #c0c0c8; }
-        select.input-box { appearance: none; -webkit-appearance: none; text-align-last: right; padding-right: 6px; }
+        select.input-box { appearance: none; -webkit-appearance: none; text-align-last: right; padding-right: 4px; }
+
         .pm-btn {
-            width: 36px; min-width: 36px; height: 36px;
-            border-radius: 9px;
+            width: 32px; min-width: 32px; height: 32px;  /* tightened from 36px */
+            border-radius: 8px;
             border: 1.5px solid #68d391;
             background: #f0fff4;
-            font-size: 18px; color: #2c7a4b;
+            font-size: 17px; color: #2c7a4b;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
@@ -170,59 +186,50 @@
             -webkit-tap-highlight-color: transparent;
         }
         .pm-btn.negative { background: #fff0f0; border-color: #e57373; color: #c0392b; }
+
         /* ── PURCHASE TOGGLE ── */
         .toggle-btn {
-            min-width: 46px; height: 36px;
-            border-radius: 9px;
+            min-width: 42px; height: 32px;         /* tightened from 36px */
+            border-radius: 8px;
             border: 1.5px solid #d1d1d6;
             background: #f2f2f7;
-            font-size: 11px; font-weight: 700;
+            font-size: 10px; font-weight: 700;
             color: #8e8e93;
             cursor: pointer;
             flex-shrink: 0;
             -webkit-tap-highlight-color: transparent;
             transition: all 0.15s;
         }
-        .toggle-btn.active {
-            background: #fff0f0;
-            border-color: #e57373;
-            color: #c0392b;
-        }
+        .toggle-btn.active { background: #fff0f0; border-color: #e57373; color: #c0392b; }
+
         /* ── RESULTS ── */
         .result-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
+            padding: 5px 10px;                     /* tightened from 8px 12px */
             border-bottom: 1px solid #e8e8ec;
         }
         .result-row:last-child { border-bottom: none; }
-        .result-label { font-size: 14px; color: #636366; }
-        .result-label.sub { font-size: 12px; color: #8e8e93; font-style: italic; }
-        .result-value { font-size: 15px; font-weight: 600; color: #1c1c1e; }
-        .result-value.highlight { color: #2c7a4b; font-size: 18px; }
-        .result-value.real      { color: #8e8e93; font-size: 13px; font-style: italic; font-weight: 500; }
+        .result-label { font-size: 13px; color: #636366; }
+        .result-label.sub { font-size: 11px; color: #8e8e93; font-style: italic; }
+        .result-value { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+        .result-value.highlight { color: #2c7a4b; font-size: 17px; }
+        .result-value.real      { color: #8e8e93; font-size: 12px; font-style: italic; font-weight: 500; }
         .result-value.cost      { color: #c0392b; }
+
         /* ── LEDGER ── */
-        .ledger-wrap {
-            width: 100%;
-            background: #fff;
-            border-radius: 12px;
-            overflow-y: auto;
-            max-height: calc(100vh - 160px);
-            box-shadow: 0 1px 6px rgba(0,0,0,.1);
-        }
         .ledger-header {
             background: #4a5568; color: #fff;
-            font-size: 12px; font-weight: 600;
+            font-size: 11px; font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 7px 12px;
+            padding: 5px 10px;
         }
         .ledger-table { width: 100%; border-collapse: collapse; }
         .ledger-table thead tr { border-bottom: 1px solid #d1d1d6; }
         .ledger-table thead th {
-            padding: 6px 12px;
-            font-size: 11px; font-weight: 600;
+            padding: 5px 10px;
+            font-size: 10px; font-weight: 600;
             color: #8e8e93;
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -231,22 +238,24 @@
         .ledger-table thead th:first-child  { text-align: left; }
         .ledger-table thead th:nth-child(2) { text-align: center; }
         .ledger-table thead th:last-child   { text-align: right; }
-        .row-top td  { padding: 5px 12px 1px; border-top: 1px solid #e8e8ec; font-size: 13px; color: #1c1c1e; }
-        .row-bot td  { padding: 1px 12px 2px; font-size: 13px; color: #1c1c1e; }
-        .row-real td { padding: 0 12px 5px; font-size: 11px; font-style: italic; color: #8e8e93; text-align: right; }
-        .row-cost td { padding: 2px 12px 5px; font-size: 12px; font-style: italic; color: #c0392b; text-align: right; }
-        .year-num { font-size: 14px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
+        .row-top td  { padding: 5px 10px 1px; border-top: 1px solid #e8e8ec; font-size: 12px; color: #1c1c1e; }
+        .row-bot td  { padding: 1px 10px 2px; font-size: 12px; color: #1c1c1e; }
+        .row-real td { padding: 0 10px 4px; font-size: 10px; font-style: italic; color: #8e8e93; text-align: right; }
+        .row-cost td { padding: 2px 10px 4px; font-size: 11px; font-style: italic; color: #c0392b; text-align: right; }
+        .year-num { font-size: 13px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
         .center-col { text-align: center; }
         .right-col  { text-align: right; }
         .right-col.ending { font-weight: 600; }
-        .ledger-table tfoot td { padding: 8px 12px; border-top: 2px solid #4a5568; font-weight: 700; font-size: 13px; }
+        .ledger-table tfoot td { padding: 6px 10px; border-top: 2px solid #4a5568; font-weight: 700; font-size: 12px; }
         .ledger-table tfoot td:first-child { text-align: left; color: #4a5568; }
+
         /* ── DEFAULTS ── */
-        .defaults-actions { display: flex; gap: 10px; width: 100%; padding: 4px 0 0; }
-        .action-btn { flex: 1; height: 42px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .defaults-actions { display: flex; gap: 8px; width: 100%; padding: 4px 0 0; }
+        .action-btn { flex: 1; height: 38px; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .action-btn.save  { background: #2d3748; color: #fff; }
         .action-btn.apply { background: #68d391; color: #1c4731; }
-        .disabled-msg { text-align: center; padding: 30px 14px; color: #8e8e93; font-size: 14px; font-style: italic; }
+        .disabled-msg { text-align: center; padding: 20px 12px; color: #8e8e93; font-size: 13px; font-style: italic; }
+
         /* ── MISC ── */
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -256,6 +265,7 @@
 <body>
     <div class="app-title">Compounding Interest Calculator — KT</div>
     <div class="wrapper">
+
         <!-- TOP TABS -->
         <div class="tabs">
             <button class="tab-btn calc-tab active"  onclick="switchTopTab('calculator')">Calculator</button>
@@ -263,6 +273,7 @@
             <button class="tab-btn defaults-tab"     onclick="switchTopTab('defaults')">Defaults</button>
             <button class="reset-btn"                onclick="resetCalculator()">↺</button>
         </div>
+
         <!-- CALCULATOR PANEL -->
         <div id="panel-calculator" class="tab-content">
             <div class="card">
@@ -329,7 +340,6 @@
                             </select>
                         </td>
                     </tr>
-                    <!-- ONE-TIME COST -->
                     <tr>
                         <td class="label-cell">One-Time Cost</td>
                         <td class="control-cell">
@@ -344,18 +354,12 @@
                         <td class="control-cell">
                             <div class="controls">
                                 <select id="purchase-month" class="input-box medium">
-                                    <option value="1">Jan</option>
-                                    <option value="2">Feb</option>
-                                    <option value="3">Mar</option>
-                                    <option value="4">Apr</option>
-                                    <option value="5">May</option>
-                                    <option value="6">Jun</option>
-                                    <option value="7">Jul</option>
-                                    <option value="8">Aug</option>
-                                    <option value="9">Sep</option>
-                                    <option value="10">Oct</option>
-                                    <option value="11">Nov</option>
-                                    <option value="12">Dec</option>
+                                    <option value="1">Jan</option><option value="2">Feb</option>
+                                    <option value="3">Mar</option><option value="4">Apr</option>
+                                    <option value="5">May</option><option value="6">Jun</option>
+                                    <option value="7">Jul</option><option value="8">Aug</option>
+                                    <option value="9">Sep</option><option value="10">Oct</option>
+                                    <option value="11">Nov</option><option value="12">Dec</option>
                                 </select>
                                 <select id="purchase-year" class="input-box medium">
                                     <option value="1">Yr 1</option>
@@ -365,6 +369,7 @@
                     </tr>
                 </table>
             </div>
+
             <!-- RESULTS -->
             <div class="card">
                 <div class="card-header">Results</div>
@@ -390,6 +395,7 @@
                 </div>
             </div>
         </div>
+
         <!-- LEDGER PANEL -->
         <div id="panel-ledger" class="tab-content hidden">
             <div class="ledger-wrap">
@@ -413,6 +419,7 @@
                 </table>
             </div>
         </div>
+
         <!-- DEFAULTS PANEL -->
         <div id="panel-defaults" class="tab-content hidden">
             <div class="card" id="defaults-card">
@@ -489,36 +496,36 @@
                 Defaults apply to Working Years only.
             </div>
         </div>
-    </div><!-- end .wrapper -->
+
+    </div>
+
     <!-- BOTTOM SCENARIO TABS -->
     <div class="scenario-bar">
         <button data-scenario="working"    class="scenario-btn active" onclick="switchScenario('working')">Working Years</button>
         <button data-scenario="bridge"     class="scenario-btn"        onclick="switchScenario('bridge')">Bridge Years</button>
         <button data-scenario="retirement" class="scenario-btn"        onclick="switchScenario('retirement')">Retirement</button>
     </div>
+
     <script>
-        /* ── helpers ── */
         function fmt(n) {
             return isNaN(n) ? "$0.00" : n.toLocaleString("en-CA", { style: "currency", currency: "CAD" });
         }
         function rawNum(str) {
             return parseFloat((str || "0").replace(/,/g, "").replace(/\$/g, "")) || 0;
         }
-        function getField(id) {
-            return rawNum(document.getElementById(id).value);
-        }
-        var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        /* ── scenario order ── */
+        function getField(id) { return rawNum(document.getElementById(id).value); }
+
+        var MONTHS         = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
         var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
         var SCENARIOS      = ["working", "bridge", "retirement"];
-        /* ── state ── */
         var activeScenario = "working";
+
         var scenarioData = {
             working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
             bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
             retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
         };
-        /* ── top tab tints ── */
+
         var TOP_TINTS = {
             working:    { calc:"#dce8f0", ledger:"#ccdae6", defaults:"#c0d0dc" },
             bridge:     { calc:"#dceee2", ledger:"#cce4d4", defaults:"#bcd8c8" },
@@ -530,12 +537,11 @@
             document.querySelector(".ledger-tab").style.background   = t.ledger;
             document.querySelector(".defaults-tab").style.background = t.defaults;
         }
-        /* ── real value helper ── */
-        function realValue(nominal, inflationRate, years) {
-            if (inflationRate === 0 || years === 0) return nominal;
-            return nominal / Math.pow(1 + inflationRate, years);
+
+        function realValue(nominal, rate, years) {
+            return (rate === 0 || years === 0) ? nominal : nominal / Math.pow(1 + rate, years);
         }
-        /* ── rebuild Year dropdown ── */
+
         function updatePurchaseYearOptions(selectedYear) {
             var t   = parseInt(document.getElementById("duration").value) || 1;
             var sel = document.getElementById("purchase-year");
@@ -543,14 +549,13 @@
             sel.innerHTML = "";
             for (var i = 1; i <= t; i++) {
                 var opt = document.createElement("option");
-                opt.value = i;
-                opt.textContent = "Yr " + i;
+                opt.value = i; opt.textContent = "Yr " + i;
                 if (i === cur) opt.selected = true;
                 sel.appendChild(opt);
             }
             if (cur > t) sel.value = t;
         }
-        /* ── toggle one-time purchase ── */
+
         function togglePurchase() {
             var btn    = document.getElementById("purchase-toggle");
             var active = btn.classList.toggle("active");
@@ -559,95 +564,79 @@
             document.getElementById("purchase-when-row").classList.toggle("hidden", !active);
             calculate();
         }
-        /* ── compute ending balance from data object (no DOM) ── */
+
         function calcEndingBalance(d) {
-            var P       = rawNum(d.principal);
-            var r       = (parseFloat(d.rate)  || 0) / 100;
-            var n       = parseInt(d.compound) || 1;
-            var t       = parseInt(d.duration) || 0;
-            var pmt     = rawNum(d.addition)   * (d.addSign || 1);
-            var pmtFreq = parseInt(d.addFreq)  || 12;
-            var timing  = d.addTiming          || "end";
-            var rPP     = r / n;
-            var pmtPP   = pmt * pmtFreq / n;
-            var bal     = P;
-            var pActive  = d.purchaseEnabled || false;
-            var pAmt     = rawNum(d.purchaseAmount);
-            var pYr      = parseInt(d.purchaseYear)  || 1;
-            var pMon     = parseInt(d.purchaseMonth) || 1;
-            var pPeriod  = (pYr - 1) * n + Math.floor((pMon - 1) * n / 12);
-            var pApplied = false;
-            var gPeriod  = 0;
+            var P = rawNum(d.principal), r = (parseFloat(d.rate)||0)/100;
+            var n = parseInt(d.compound)||1, t = parseInt(d.duration)||0;
+            var pmt = rawNum(d.addition)*(d.addSign||1);
+            var pmtFreq = parseInt(d.addFreq)||12, timing = d.addTiming||"end";
+            var rPP = r/n, pmtPP = pmt*pmtFreq/n, bal = P;
+            var pActive = d.purchaseEnabled||false, pAmt = rawNum(d.purchaseAmount);
+            var pYr = parseInt(d.purchaseYear)||1, pMon = parseInt(d.purchaseMonth)||1;
+            var pPeriod = (pYr-1)*n + Math.floor((pMon-1)*n/12);
+            var pApplied = false, gPeriod = 0;
             for (var yr = 1; yr <= t; yr++) {
                 for (var p = 0; p < n; p++) {
-                    if (timing === "start") {
-                        bal += pmtPP;
-                        bal += bal * rPP;
-                    } else {
-                        bal += bal * rPP;
-                        bal += pmtPP;
-                    }
-                    if (pActive && !pApplied && gPeriod === pPeriod) {
-                        bal -= pAmt;
-                        pApplied = true;
-                    }
+                    if (timing==="start") { bal+=pmtPP; bal+=bal*rPP; }
+                    else { bal+=bal*rPP; bal+=pmtPP; }
+                    if (pActive && !pApplied && gPeriod===pPeriod) { bal-=pAmt; pApplied=true; }
                     gPeriod++;
                 }
             }
             return bal;
         }
-        /* ── save DOM → scenarioData + localStorage ── */
+
         function saveScenarioData() {
             var d = scenarioData[activeScenario];
-            d.principal       = document.getElementById("principal").value;
-            d.rate            = document.getElementById("rate").value;
-            d.inflation       = document.getElementById("inflation").value;
-            d.compound        = document.getElementById("compound").value;
-            d.duration        = document.getElementById("duration").value;
-            d.addition        = document.getElementById("addition").value;
-            d.addFreq         = document.getElementById("addFreq").value;
-            d.addTiming       = document.getElementById("addTiming").value;
-            d.addSign         = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
-            d.purchaseEnabled = document.getElementById("purchase-toggle").classList.contains("active");
-            d.purchaseAmount  = document.getElementById("purchase-amount").value;
-            d.purchaseMonth   = document.getElementById("purchase-month").value;
-            d.purchaseYear    = document.getElementById("purchase-year").value;
-            localStorage.setItem(activeScenario + "_data", JSON.stringify(d));
+            d.principal=document.getElementById("principal").value;
+            d.rate=document.getElementById("rate").value;
+            d.inflation=document.getElementById("inflation").value;
+            d.compound=document.getElementById("compound").value;
+            d.duration=document.getElementById("duration").value;
+            d.addition=document.getElementById("addition").value;
+            d.addFreq=document.getElementById("addFreq").value;
+            d.addTiming=document.getElementById("addTiming").value;
+            d.addSign=document.getElementById("pm-btn").classList.contains("negative")?-1:1;
+            d.purchaseEnabled=document.getElementById("purchase-toggle").classList.contains("active");
+            d.purchaseAmount=document.getElementById("purchase-amount").value;
+            d.purchaseMonth=document.getElementById("purchase-month").value;
+            d.purchaseYear=document.getElementById("purchase-year").value;
+            localStorage.setItem(activeScenario+"_data", JSON.stringify(d));
         }
-        /* ── load scenarioData → DOM ── */
+
         function loadScenarioData(scenario) {
             var d = scenarioData[scenario];
             document.getElementById("principal").value  = d.principal;
             document.getElementById("rate").value       = d.rate;
-            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("inflation").value  = d.inflation!==undefined ? d.inflation : "2.00";
             document.getElementById("compound").value   = d.compound;
             document.getElementById("duration").value   = d.duration;
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
             document.getElementById("addTiming").value  = d.addTiming;
-            var btn   = document.getElementById("pm-btn");
-            var isNeg = (d.addSign === -1);
+            var btn = document.getElementById("pm-btn");
+            var isNeg = (d.addSign===-1);
             btn.classList.toggle("negative", isNeg);
             btn.textContent = isNeg ? "−" : "+";
-            var pActive = d.purchaseEnabled || false;
-            var ptBtn   = document.getElementById("purchase-toggle");
+            var pActive = d.purchaseEnabled||false;
+            var ptBtn = document.getElementById("purchase-toggle");
             ptBtn.classList.toggle("active", pActive);
             ptBtn.textContent = pActive ? "ON" : "OFF";
-            document.getElementById("purchase-amount").value    = d.purchaseAmount || "";
+            document.getElementById("purchase-amount").value    = d.purchaseAmount||"";
             document.getElementById("purchase-amount").disabled = !pActive;
-            document.getElementById("purchase-month").value     = d.purchaseMonth  || "1";
+            document.getElementById("purchase-month").value     = d.purchaseMonth||"1";
             document.getElementById("purchase-when-row").classList.toggle("hidden", !pActive);
-            updatePurchaseYearOptions(d.purchaseYear || "1");
+            updatePurchaseYearOptions(d.purchaseYear||"1");
         }
-        /* ── switch bottom scenario tab ── */
+
         function switchScenario(newScenario) {
-            if (newScenario === activeScenario) return;
+            if (newScenario===activeScenario) return;
             saveScenarioData();
-            var prevScenario = activeScenario;
-            activeScenario   = newScenario;
-            if (SCENARIO_ORDER[newScenario] > SCENARIO_ORDER[prevScenario]) {
-                var bal = calcEndingBalance(scenarioData[prevScenario]);
-                scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits: 2 });
+            var prev = activeScenario;
+            activeScenario = newScenario;
+            if (SCENARIO_ORDER[newScenario] > SCENARIO_ORDER[prev]) {
+                var bal = calcEndingBalance(scenarioData[prev]);
+                scenarioData[newScenario].principal = bal.toLocaleString("en-CA",{maximumFractionDigits:2});
             }
             loadScenarioData(newScenario);
             updateScenarioTabs();
@@ -655,210 +644,172 @@
             updateDefaultsPanel();
             calculate();
         }
+
         function updateScenarioTabs() {
-            document.querySelectorAll(".scenario-btn").forEach(function(b) { b.classList.remove("active"); });
-            document.querySelector('[data-scenario="' + activeScenario + '"]').classList.add("active");
+            document.querySelectorAll(".scenario-btn").forEach(function(b){b.classList.remove("active");});
+            document.querySelector('[data-scenario="'+activeScenario+'"]').classList.add("active");
         }
-        /* ── switch top tab ── */
+
         function switchTopTab(name) {
-            document.querySelectorAll(".tab-content").forEach(function(p) { p.classList.add("hidden"); });
-            document.getElementById("panel-" + name).classList.remove("hidden");
-            document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-            var cls = name === "calculator" ? ".calc-tab" : name === "ledger" ? ".ledger-tab" : ".defaults-tab";
+            document.querySelectorAll(".tab-content").forEach(function(p){p.classList.add("hidden");});
+            document.getElementById("panel-"+name).classList.remove("hidden");
+            document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+            var cls = name==="calculator"?".calc-tab":name==="ledger"?".ledger-tab":".defaults-tab";
             document.querySelector(cls).classList.add("active");
-            if (name === "defaults") updateDefaultsPanel();
+            if (name==="defaults") updateDefaultsPanel();
         }
-        /* ── defaults panel visibility ── */
+
         function updateDefaultsPanel() {
-            var isWorking = (activeScenario === "working");
-            document.getElementById("defaults-card").classList.toggle("hidden",         !isWorking);
-            document.getElementById("defaults-actions").classList.toggle("hidden",      !isWorking);
-            document.getElementById("defaults-disabled-msg").classList.toggle("hidden",  isWorking);
+            var isWorking = (activeScenario==="working");
+            document.getElementById("defaults-card").classList.toggle("hidden",        !isWorking);
+            document.getElementById("defaults-actions").classList.toggle("hidden",     !isWorking);
+            document.getElementById("defaults-disabled-msg").classList.toggle("hidden", isWorking);
         }
-        /* ── main calculation ── */
+
         function calculate() {
             var P         = getField("principal");
-            var r         = (parseFloat(document.getElementById("rate").value)      || 0) / 100;
-            var inflation = (parseFloat(document.getElementById("inflation").value) || 0) / 100;
-            var n         = parseInt(document.getElementById("compound").value)     || 1;
-            var t         = parseInt(document.getElementById("duration").value)     || 0;
-            var addSign   = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
-            var pmt       = getField("addition") * addSign;
-            var pmtFreq   = parseInt(document.getElementById("addFreq").value)      || 12;
+            var r         = (parseFloat(document.getElementById("rate").value)||0)/100;
+            var inflation = (parseFloat(document.getElementById("inflation").value)||0)/100;
+            var n         = parseInt(document.getElementById("compound").value)||1;
+            var t         = parseInt(document.getElementById("duration").value)||0;
+            var addSign   = document.getElementById("pm-btn").classList.contains("negative")?-1:1;
+            var pmt       = getField("addition")*addSign;
+            var pmtFreq   = parseInt(document.getElementById("addFreq").value)||12;
             var timing    = document.getElementById("addTiming").value;
-            var pActive     = document.getElementById("purchase-toggle").classList.contains("active");
-            var pAmt        = pActive ? rawNum(document.getElementById("purchase-amount").value) : 0;
-            var pMon        = parseInt(document.getElementById("purchase-month").value) || 1;
-            var pYr         = parseInt(document.getElementById("purchase-year").value)  || 1;
-            var pPeriod     = (pYr - 1) * n + Math.floor((pMon - 1) * n / 12);
-            var pApplied    = false;
-            var pAppliedAmt = 0;
-            var rPP     = r / n;
-            var pmtPP   = pmt * pmtFreq / n;
-            var bal     = P;
-            var totAdd  = 0;
-            var totInt  = 0;
-            var html    = "";
-            var gPeriod = 0;
-            for (var year = 1; year <= t; year++) {
-                var opening = bal;
-                var yAdd = 0, yInt = 0, yCost = 0;
-                for (var p = 0; p < n; p++) {
+            var pActive   = document.getElementById("purchase-toggle").classList.contains("active");
+            var pAmt      = pActive?rawNum(document.getElementById("purchase-amount").value):0;
+            var pMon      = parseInt(document.getElementById("purchase-month").value)||1;
+            var pYr       = parseInt(document.getElementById("purchase-year").value)||1;
+            var pPeriod   = (pYr-1)*n+Math.floor((pMon-1)*n/12);
+            var pApplied  = false, pAppliedAmt = 0;
+            var rPP=r/n, pmtPP=pmt*pmtFreq/n, bal=P;
+            var totAdd=0, totInt=0, html="", gPeriod=0;
+
+            for (var year=1; year<=t; year++) {
+                var opening=bal, yAdd=0, yInt=0, yCost=0;
+                for (var p=0; p<n; p++) {
                     var interest;
-                    if (timing === "start") {
-                        bal += pmtPP;  yAdd += pmtPP;
-                        interest = bal * rPP;
-                        bal += interest; yInt += interest;
-                    } else {
-                        interest = bal * rPP;
-                        bal += interest; yInt += interest;
-                        bal += pmtPP;    yAdd += pmtPP;
-                    }
-                    if (pActive && !pApplied && gPeriod === pPeriod) {
-                        bal -= pAmt; yCost = pAmt;
-                        pApplied = true; pAppliedAmt = pAmt;
-                    }
+                    if (timing==="start") { bal+=pmtPP; yAdd+=pmtPP; interest=bal*rPP; bal+=interest; yInt+=interest; }
+                    else { interest=bal*rPP; bal+=interest; yInt+=interest; bal+=pmtPP; yAdd+=pmtPP; }
+                    if (pActive&&!pApplied&&gPeriod===pPeriod) { bal-=pAmt; yCost=pAmt; pApplied=true; pAppliedAmt=pAmt; }
                     gPeriod++;
                 }
-                totAdd += yAdd;
-                totInt += yInt;
+                totAdd+=yAdd; totInt+=yInt;
                 var yReal = realValue(bal, inflation, year);
-                html +=
-                    '<tr class="row-top">' +
-                        '<td class="year-num" rowspan="2">' + year + '.</td>' +
-                        '<td class="center-col">' + fmt(yAdd)    + '</td>' +
-                        '<td class="right-col">'  + fmt(opening) + '</td>' +
-                    '</tr>' +
-                    '<tr class="row-bot">' +
-                        '<td class="center-col">'       + fmt(yInt) + '</td>' +
-                        '<td class="right-col ending">' + fmt(bal)  + '</td>' +
+                html+=
+                    '<tr class="row-top">'+
+                        '<td class="year-num" rowspan="2">'+year+'.</td>'+
+                        '<td class="center-col">'+fmt(yAdd)+'</td>'+
+                        '<td class="right-col">'+fmt(opening)+'</td>'+
+                    '</tr>'+
+                    '<tr class="row-bot">'+
+                        '<td class="center-col">'+fmt(yInt)+'</td>'+
+                        '<td class="right-col ending">'+fmt(bal)+'</td>'+
                     '</tr>';
-                if (inflation > 0) {
-                    html +=
-                        '<tr class="row-real">' +
-                            '<td></td><td></td>' +
-                            '<td>[real: ' + fmt(yReal) + ']</td>' +
-                        '</tr>';
+                if (inflation>0) {
+                    html+='<tr class="row-real"><td></td><td></td><td>[real: '+fmt(yReal)+']</td></tr>';
                 }
-                if (yCost > 0) {
-                    html +=
-                        '<tr class="row-cost">' +
-                            '<td></td>' +
-                            '<td colspan="2">⬇ One-Time Cost: −' + fmt(yCost) +
-                                ' (' + MONTHS[pMon - 1] + ', Yr ' + pYr + ')</td>' +
-                        '</tr>';
+                if (yCost>0) {
+                    html+='<tr class="row-cost"><td></td><td colspan="2">⬇ One-Time Cost: −'+fmt(yCost)+' ('+MONTHS[pMon-1]+', Yr '+pYr+')</td></tr>';
                 }
             }
+
             var endingReal = realValue(bal, inflation, t);
-            var inflPct    = (parseFloat(document.getElementById("inflation").value) || 0).toFixed(2);
+            var inflPct    = (parseFloat(document.getElementById("inflation").value)||0).toFixed(2);
             document.getElementById("res-additions").textContent  = fmt(totAdd);
             document.getElementById("res-interest").textContent   = fmt(totInt);
             document.getElementById("res-ending").textContent     = fmt(bal);
             document.getElementById("res-real").textContent       = fmt(endingReal);
-            document.getElementById("res-real-label").textContent =
-                "Real Value (today's $) @ " + inflPct + "% inflation";
-            document.getElementById("ledger-title").textContent   = t + " YEARS";
+            document.getElementById("res-real-label").textContent = "Real Value (today's $) @ "+inflPct+"% inflation";
+            document.getElementById("ledger-title").textContent   = t+" YEARS";
             document.getElementById("ledger-body").innerHTML      = html;
             document.getElementById("ledger-foot").innerHTML      =
-                '<tr>' +
-                    '<td>Total</td>' +
-                    '<td class="center-col">' + fmt(totAdd + totInt) + '</td>' +
-                    '<td class="right-col">'  + fmt(bal)             + '</td>' +
-                '</tr>';
+                '<tr><td>Total</td><td class="center-col">'+fmt(totAdd+totInt)+'</td><td class="right-col">'+fmt(bal)+'</td></tr>';
             var prRow = document.getElementById("res-purchase-row");
-            if (pActive && pAppliedAmt > 0) {
+            if (pActive&&pAppliedAmt>0) {
                 prRow.classList.remove("hidden");
-                document.getElementById("res-purchase").textContent = "−" + fmt(pAppliedAmt);
-            } else {
-                prRow.classList.add("hidden");
-            }
+                document.getElementById("res-purchase").textContent = "−"+fmt(pAppliedAmt);
+            } else { prRow.classList.add("hidden"); }
         }
-        /* ── pm-btn toggles ── */
+
         function toggleAdditionSign() {
             var btn = document.getElementById("pm-btn");
-            btn.textContent = btn.classList.toggle("negative") ? "−" : "+";
+            btn.textContent = btn.classList.toggle("negative")?"−":"+";
             calculate();
         }
         function toggleDefaultAdditionSign() {
             var btn = document.getElementById("def-pm-btn");
-            btn.textContent = btn.classList.toggle("negative") ? "−" : "+";
+            btn.textContent = btn.classList.toggle("negative")?"−":"+";
         }
-        /* ── format number fields on blur ── */
+
         function formatField(id) {
-            var el  = document.getElementById(id);
-            var num = rawNum(el.value);
-            el.value = num.toLocaleString("en-CA", { maximumFractionDigits: 2 });
+            var el=document.getElementById(id), num=rawNum(el.value);
+            el.value=num.toLocaleString("en-CA",{maximumFractionDigits:2});
             calculate();
         }
-        /* ── defaults ── */
+
         var FALLBACK = {
             principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",
             addition:"625", addFreq:"12", addTiming:"end", addSign:1,
             purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1"
         };
+
         function loadDefaultsIntoPanel() {
-            var d = JSON.parse(localStorage.getItem("calcDefaults")) || FALLBACK;
-            document.getElementById("def-principal").value  = d.principal;
-            document.getElementById("def-rate").value       = d.rate;
-            document.getElementById("def-inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
-            document.getElementById("def-compound").value   = d.compound;
-            document.getElementById("def-duration").value   = d.duration;
-            document.getElementById("def-addition").value   = d.addition;
-            document.getElementById("def-addFreq").value    = d.addFreq;
-            document.getElementById("def-addTiming").value  = d.addTiming;
-            var btn   = document.getElementById("def-pm-btn");
-            var isNeg = (d.addSign === -1);
-            btn.classList.toggle("negative", isNeg);
-            btn.textContent = isNeg ? "−" : "+";
+            var d=JSON.parse(localStorage.getItem("calcDefaults"))||FALLBACK;
+            document.getElementById("def-principal").value = d.principal;
+            document.getElementById("def-rate").value      = d.rate;
+            document.getElementById("def-inflation").value = d.inflation!==undefined?d.inflation:"2.00";
+            document.getElementById("def-compound").value  = d.compound;
+            document.getElementById("def-duration").value  = d.duration;
+            document.getElementById("def-addition").value  = d.addition;
+            document.getElementById("def-addFreq").value   = d.addFreq;
+            document.getElementById("def-addTiming").value = d.addTiming;
+            var btn=document.getElementById("def-pm-btn"), isNeg=(d.addSign===-1);
+            btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
         }
+
         function saveDefaults() {
-            var config = {
-                principal: document.getElementById("def-principal").value,
-                rate:      document.getElementById("def-rate").value,
-                inflation: document.getElementById("def-inflation").value,
-                compound:  document.getElementById("def-compound").value,
-                duration:  document.getElementById("def-duration").value,
-                addition:  document.getElementById("def-addition").value,
-                addFreq:   document.getElementById("def-addFreq").value,
-                addTiming: document.getElementById("def-addTiming").value,
-                addSign:   document.getElementById("def-pm-btn").classList.contains("negative") ? -1 : 1
+            var config={
+                principal:document.getElementById("def-principal").value,
+                rate:document.getElementById("def-rate").value,
+                inflation:document.getElementById("def-inflation").value,
+                compound:document.getElementById("def-compound").value,
+                duration:document.getElementById("def-duration").value,
+                addition:document.getElementById("def-addition").value,
+                addFreq:document.getElementById("def-addFreq").value,
+                addTiming:document.getElementById("def-addTiming").value,
+                addSign:document.getElementById("def-pm-btn").classList.contains("negative")?-1:1
             };
-            localStorage.setItem("calcDefaults", JSON.stringify(config));
-            var btn = document.querySelector(".action-btn.save");
-            btn.textContent = "✓ Saved!";
-            setTimeout(function() { btn.textContent = "💾 Save Defaults"; }, 1500);
+            localStorage.setItem("calcDefaults",JSON.stringify(config));
+            var btn=document.querySelector(".action-btn.save");
+            btn.textContent="✓ Saved!";
+            setTimeout(function(){btn.textContent="💾 Save Defaults";},1500);
         }
+
         function applyDefaults(switchToCalc) {
-            var d = JSON.parse(localStorage.getItem("calcDefaults")) || FALLBACK;
+            var d=JSON.parse(localStorage.getItem("calcDefaults"))||FALLBACK;
             document.getElementById("principal").value  = d.principal;
             document.getElementById("rate").value       = d.rate;
-            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("inflation").value  = d.inflation!==undefined?d.inflation:"2.00";
             document.getElementById("compound").value   = d.compound;
             document.getElementById("duration").value   = d.duration;
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
             document.getElementById("addTiming").value  = d.addTiming;
-            var btn   = document.getElementById("pm-btn");
-            var isNeg = (d.addSign === -1);
-            btn.classList.toggle("negative", isNeg);
-            btn.textContent = isNeg ? "−" : "+";
+            var btn=document.getElementById("pm-btn"), isNeg=(d.addSign===-1);
+            btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
             calculate();
             if (switchToCalc) switchTopTab("calculator");
         }
+
         function resetCalculator() {
-            if (activeScenario === "working") applyDefaults(true);
+            if (activeScenario==="working") applyDefaults(true);
         }
-        /* ── init ── */
+
         document.addEventListener("DOMContentLoaded", function() {
             SCENARIOS.forEach(function(s) {
-                var raw = localStorage.getItem(s + "_data");
-                if (raw) {
-                    try {
-                        var parsed = JSON.parse(raw);
-                        delete parsed.visited;
-                        scenarioData[s] = parsed;
-                    } catch(e) {}
-                }
+                var raw=localStorage.getItem(s+"_data");
+                if (raw) { try { var p=JSON.parse(raw); delete p.visited; scenarioData[s]=p; } catch(e){} }
             });
             loadDefaultsIntoPanel();
             switchTopTab("calculator");
@@ -866,65 +817,32 @@
             updateScenarioTabs();
             updateTopTabTint();
             calculate();
-            /* grey-out UX on focus */
+
             document.querySelectorAll("input").forEach(function(input) {
-                var savedValue = "";
-                var cleared    = false;
-                input.addEventListener("focus", function() {
-                    savedValue = input.value;
-                    cleared    = false;
-                    input.style.color = "#c0c0c8";
-                });
-                input.addEventListener("keydown", function() {
-                    if (!cleared) {
-                        cleared = true;
-                        input.value = "";
-                        input.style.color = "#1c1c1e";
-                    }
-                });
-                input.addEventListener("blur", function() {
-                    input.style.color = "#1c1c1e";
-                    if (input.value.trim() === "") input.value = savedValue;
-                });
+                var savedValue="", cleared=false;
+                input.addEventListener("focus", function(){ savedValue=input.value; cleared=false; input.style.color="#c0c0c8"; });
+                input.addEventListener("keydown", function(){ if(!cleared){cleared=true;input.value="";input.style.color="#1c1c1e";} });
+                input.addEventListener("blur",  function(){ input.style.color="#1c1c1e"; if(input.value.trim()==="") input.value=savedValue; });
             });
-            /* calculator listeners */
+
             document.getElementById("principal").addEventListener("input",  calculate);
-            document.getElementById("principal").addEventListener("blur",   function() { formatField("principal"); });
+            document.getElementById("principal").addEventListener("blur",   function(){formatField("principal");});
             document.getElementById("addition").addEventListener("input",   calculate);
-            document.getElementById("addition").addEventListener("blur",    function() { formatField("addition"); });
-            document.getElementById("rate").addEventListener("blur", function() {
-                var v = parseFloat(this.value);
-                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
-                calculate();
-            });
-            document.getElementById("inflation").addEventListener("blur", function() {
-                var v = parseFloat(this.value);
-                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
-                calculate();
-            });
+            document.getElementById("addition").addEventListener("blur",    function(){formatField("addition");});
+            document.getElementById("rate").addEventListener("blur",        function(){var v=parseFloat(this.value);this.value=isNaN(v)?"0.00":v.toFixed(2);calculate();});
+            document.getElementById("inflation").addEventListener("blur",   function(){var v=parseFloat(this.value);this.value=isNaN(v)?"0.00":v.toFixed(2);calculate();});
             document.getElementById("compound").addEventListener("change",  calculate);
-            document.getElementById("duration").addEventListener("input",   function() {
-                updatePurchaseYearOptions();
-                calculate();
-            });
+            document.getElementById("duration").addEventListener("input",   function(){updatePurchaseYearOptions();calculate();});
             document.getElementById("addFreq").addEventListener("change",   calculate);
             document.getElementById("addTiming").addEventListener("change", calculate);
-            /* purchase listeners */
-            document.getElementById("purchase-amount").addEventListener("input",  calculate);
-            document.getElementById("purchase-amount").addEventListener("blur",   function() { formatField("purchase-amount"); });
-            document.getElementById("purchase-month").addEventListener("change",  calculate);
-            document.getElementById("purchase-year").addEventListener("change",   calculate);
-            /* defaults listeners */
-            document.getElementById("def-principal").addEventListener("blur",  function() { formatField("def-principal"); });
-            document.getElementById("def-addition").addEventListener("blur",   function() { formatField("def-addition"); });
-            document.getElementById("def-rate").addEventListener("blur", function() {
-                var v = parseFloat(this.value);
-                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
-            });
-            document.getElementById("def-inflation").addEventListener("blur", function() {
-                var v = parseFloat(this.value);
-                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
-            });
+            document.getElementById("purchase-amount").addEventListener("input", calculate);
+            document.getElementById("purchase-amount").addEventListener("blur",  function(){formatField("purchase-amount");});
+            document.getElementById("purchase-month").addEventListener("change", calculate);
+            document.getElementById("purchase-year").addEventListener("change",  calculate);
+            document.getElementById("def-principal").addEventListener("blur",    function(){formatField("def-principal");});
+            document.getElementById("def-addition").addEventListener("blur",     function(){formatField("def-addition");});
+            document.getElementById("def-rate").addEventListener("blur",         function(){var v=parseFloat(this.value);this.value=isNaN(v)?"0.00":v.toFixed(2);});
+            document.getElementById("def-inflation").addEventListener("blur",    function(){var v=parseFloat(this.value);this.value=isNaN(v)?"0.00":v.toFixed(2);});
         });
     </script>
 </body>
