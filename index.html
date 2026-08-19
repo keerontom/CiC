@@ -16,7 +16,6 @@
             background: #f2f2f7;
             display: flex;
             flex-direction: column;
-            /* top safe area pushes content below notch; right/left unchanged; bottom 0 */
             padding: calc(8px + constant(safe-area-inset-top)) 12px 0;
             padding: calc(8px + env(safe-area-inset-top)) 12px 0;
             height: 100%;
@@ -25,7 +24,6 @@
         }
         .hidden { display: none !important; }
 
-        /* wrapper leaves room for fixed bottom bar + home indicator */
         .wrapper {
             display: flex;
             flex-direction: column;
@@ -111,7 +109,6 @@
             font-weight: 600;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            /* push label text above home indicator */
             padding-bottom: constant(safe-area-inset-bottom);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -163,6 +160,7 @@
         }
         .input-box:focus { border-color: #4a5568; }
         .input-box.medium { flex: 1; width: auto; }
+        .input-box:disabled { background: #f5f5f7; color: #c0c0c8; }
         select.input-box { appearance: none; -webkit-appearance: none; text-align-last: right; padding-right: 6px; }
 
         .pm-btn {
@@ -179,6 +177,25 @@
         }
         .pm-btn.negative { background: #fff0f0; border-color: #e57373; color: #c0392b; }
 
+        /* ── PURCHASE TOGGLE ── */
+        .toggle-btn {
+            min-width: 46px; height: 36px;
+            border-radius: 9px;
+            border: 1.5px solid #d1d1d6;
+            background: #f2f2f7;
+            font-size: 11px; font-weight: 700;
+            color: #8e8e93;
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.15s;
+        }
+        .toggle-btn.active {
+            background: #fff0f0;
+            border-color: #e57373;
+            color: #c0392b;
+        }
+
         /* ── RESULTS ── */
         .result-row {
             display: flex;
@@ -189,8 +206,11 @@
         }
         .result-row:last-child { border-bottom: none; }
         .result-label { font-size: 14px; color: #636366; }
+        .result-label.sub { font-size: 12px; color: #8e8e93; font-style: italic; }
         .result-value { font-size: 15px; font-weight: 600; color: #1c1c1e; }
         .result-value.highlight { color: #2c7a4b; font-size: 18px; }
+        .result-value.real      { color: #8e8e93; font-size: 13px; font-style: italic; font-weight: 500; }
+        .result-value.cost      { color: #c0392b; }
 
         /* ── LEDGER ── */
         .ledger-wrap {
@@ -220,8 +240,10 @@
         .ledger-table thead th:first-child  { text-align: left; }
         .ledger-table thead th:nth-child(2) { text-align: center; }
         .ledger-table thead th:last-child   { text-align: right; }
-        .row-top td { padding: 5px 12px 1px; border-top: 1px solid #e8e8ec; font-size: 13px; color: #1c1c1e; }
-        .row-bot td { padding: 1px 12px 5px; font-size: 13px; color: #1c1c1e; }
+        .row-top td    { padding: 5px 12px 1px; border-top: 1px solid #e8e8ec; font-size: 13px; color: #1c1c1e; }
+        .row-bot td    { padding: 1px 12px 2px; font-size: 13px; color: #1c1c1e; }
+        .row-real td   { padding: 0 12px 5px; font-size: 11px; font-style: italic; color: #8e8e93; text-align: right; }
+        .row-cost td   { padding: 2px 12px 5px; font-size: 12px; font-style: italic; color: #c0392b; text-align: right; }
         .year-num { font-size: 14px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
         .center-col { text-align: center; }
         .right-col  { text-align: right; }
@@ -272,6 +294,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="label-cell">Inflation %</td>
+                        <td class="control-cell">
+                            <input type="number" id="inflation" class="input-box" step="0.25" inputmode="decimal">
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="label-cell">Compounding</td>
                         <td class="control-cell">
                             <select id="compound" class="input-box">
@@ -314,13 +342,53 @@
                             </select>
                         </td>
                     </tr>
+                    <!-- ONE-TIME COST -->
+                    <tr>
+                        <td class="label-cell">One-Time Cost</td>
+                        <td class="control-cell">
+                            <div class="controls">
+                                <button class="toggle-btn" id="purchase-toggle" onclick="togglePurchase()">OFF</button>
+                                <input type="text" id="purchase-amount" class="input-box medium" inputmode="decimal" placeholder="Amount" disabled>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="purchase-when-row" class="hidden">
+                        <td class="label-cell">When</td>
+                        <td class="control-cell">
+                            <div class="controls">
+                                <select id="purchase-month" class="input-box medium">
+                                    <option value="1">Jan</option>
+                                    <option value="2">Feb</option>
+                                    <option value="3">Mar</option>
+                                    <option value="4">Apr</option>
+                                    <option value="5">May</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Jul</option>
+                                    <option value="8">Aug</option>
+                                    <option value="9">Sep</option>
+                                    <option value="10">Oct</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dec</option>
+                                </select>
+                                <select id="purchase-year" class="input-box medium">
+                                    <option value="1">Yr 1</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
                 </table>
             </div>
+
+            <!-- RESULTS -->
             <div class="card">
                 <div class="card-header">Results</div>
                 <div class="result-row">
                     <span class="result-label">Total Additions / Subtractions</span>
                     <span id="res-additions" class="result-value">$0.00</span>
+                </div>
+                <div class="result-row hidden" id="res-purchase-row">
+                    <span class="result-label">One-Time Cost</span>
+                    <span id="res-purchase" class="result-value cost">−$0.00</span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Total Interest Earned</span>
@@ -329,6 +397,10 @@
                 <div class="result-row">
                     <span class="result-label">Ending Balance</span>
                     <span id="res-ending" class="result-value highlight">$0.00</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label sub" id="res-real-label">Real Value (today's $) @ 2.00% inflation</span>
+                    <span id="res-real" class="result-value real">$0.00</span>
                 </div>
             </div>
         </div>
@@ -372,6 +444,12 @@
                         <td class="label-cell">Interest %</td>
                         <td class="control-cell">
                             <input type="number" id="def-rate" class="input-box" step="0.25" inputmode="decimal">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Inflation %</td>
+                        <td class="control-cell">
+                            <input type="number" id="def-inflation" class="input-box" step="0.25" inputmode="decimal">
                         </td>
                     </tr>
                     <tr>
@@ -449,23 +527,25 @@
             return rawNum(document.getElementById(id).value);
         }
 
-        /* ── scenario order (for carry-forward direction check) ── */
+        var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        /* ── scenario order ── */
         var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
         var SCENARIOS      = ["working", "bridge", "retirement"];
 
         /* ── state ── */
         var activeScenario = "working";
         var scenarioData = {
-            working:    { principal: "1,070,000", rate: "7.00", compound: "12", duration: "5", addition: "625", addFreq: "12", addTiming: "end", addSign: 1 },
-            bridge:     { principal: "",           rate: "6.00", compound: "12", duration: "10", addition: "10000", addFreq: "12", addTiming: "end", addSign: 1 },
-            retirement: { principal: "",           rate: "5.00", compound: "12", duration: "40", addition: "8000", addFreq: "12", addTiming: "end", addSign: 1 }
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
         };
 
-        /* ── top tab tints per scenario ── */
+        /* ── top tab tints ── */
         var TOP_TINTS = {
-            working:    { calc: "#dce8f0", ledger: "#ccdae6", defaults: "#c0d0dc" },
-            bridge:     { calc: "#dceee2", ledger: "#cce4d4", defaults: "#bcd8c8" },
-            retirement: { calc: "#f0e4d8", ledger: "#e8d8c8", defaults: "#dccab8" }
+            working:    { calc:"#dce8f0", ledger:"#ccdae6", defaults:"#c0d0dc" },
+            bridge:     { calc:"#dceee2", ledger:"#cce4d4", defaults:"#bcd8c8" },
+            retirement: { calc:"#f0e4d8", ledger:"#e8d8c8", defaults:"#dccab8" }
         };
         function updateTopTabTint() {
             var t = TOP_TINTS[activeScenario];
@@ -474,18 +554,59 @@
             document.querySelector(".defaults-tab").style.background = t.defaults;
         }
 
-        /* ── compute ending balance from a data object (pure, no DOM) ── */
+        /* ── real value: what nominal dollars are worth in today's purchasing power ── */
+        function realValue(nominal, inflationRate, years) {
+            if (inflationRate === 0 || years === 0) return nominal;
+            return nominal / Math.pow(1 + inflationRate, years);
+        }
+
+        /* ── rebuild Year dropdown ── */
+        function updatePurchaseYearOptions(selectedYear) {
+            var t   = parseInt(document.getElementById("duration").value) || 1;
+            var sel = document.getElementById("purchase-year");
+            var cur = selectedYear !== undefined ? parseInt(selectedYear) : (parseInt(sel.value) || 1);
+            sel.innerHTML = "";
+            for (var i = 1; i <= t; i++) {
+                var opt = document.createElement("option");
+                opt.value = i;
+                opt.textContent = "Yr " + i;
+                if (i === cur) opt.selected = true;
+                sel.appendChild(opt);
+            }
+            if (cur > t) sel.value = t;
+        }
+
+        /* ── toggle one-time purchase ── */
+        function togglePurchase() {
+            var btn    = document.getElementById("purchase-toggle");
+            var active = btn.classList.toggle("active");
+            btn.textContent = active ? "ON" : "OFF";
+            document.getElementById("purchase-amount").disabled = !active;
+            document.getElementById("purchase-when-row").classList.toggle("hidden", !active);
+            calculate();
+        }
+
+        /* ── compute ending balance from data object (no DOM) — used for carry-forward ── */
         function calcEndingBalance(d) {
             var P       = rawNum(d.principal);
-            var r       = (parseFloat(d.rate)   || 0) / 100;
-            var n       = parseInt(d.compound)  || 1;
-            var t       = parseInt(d.duration)  || 0;
-            var pmt     = rawNum(d.addition)    * (d.addSign || 1);
-            var pmtFreq = parseInt(d.addFreq)   || 12;
-            var timing  = d.addTiming           || "end";
+            var r       = (parseFloat(d.rate)  || 0) / 100;
+            var n       = parseInt(d.compound) || 1;
+            var t       = parseInt(d.duration) || 0;
+            var pmt     = rawNum(d.addition)   * (d.addSign || 1);
+            var pmtFreq = parseInt(d.addFreq)  || 12;
+            var timing  = d.addTiming          || "end";
             var rPP     = r / n;
             var pmtPP   = pmt * pmtFreq / n;
             var bal     = P;
+
+            var pActive  = d.purchaseEnabled || false;
+            var pAmt     = rawNum(d.purchaseAmount);
+            var pYr      = parseInt(d.purchaseYear)  || 1;
+            var pMon     = parseInt(d.purchaseMonth) || 1;
+            var pPeriod  = (pYr - 1) * n + Math.floor((pMon - 1) * n / 12);
+            var pApplied = false;
+            var gPeriod  = 0;
+
             for (var yr = 1; yr <= t; yr++) {
                 for (var p = 0; p < n; p++) {
                     if (timing === "start") {
@@ -495,67 +616,78 @@
                         bal += bal * rPP;
                         bal += pmtPP;
                     }
+                    if (pActive && !pApplied && gPeriod === pPeriod) {
+                        bal -= pAmt;
+                        pApplied = true;
+                    }
+                    gPeriod++;
                 }
             }
             return bal;
         }
 
-        /* ── save DOM → scenarioData + localStorage (only on tab switch) ── */
+        /* ── save DOM → scenarioData + localStorage ── */
         function saveScenarioData() {
-            var d       = scenarioData[activeScenario];
-            d.principal = document.getElementById("principal").value;
-            d.rate      = document.getElementById("rate").value;
-            d.compound  = document.getElementById("compound").value;
-            d.duration  = document.getElementById("duration").value;
-            d.addition  = document.getElementById("addition").value;
-            d.addFreq   = document.getElementById("addFreq").value;
-            d.addTiming = document.getElementById("addTiming").value;
-            d.addSign   = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
+            var d = scenarioData[activeScenario];
+            d.principal       = document.getElementById("principal").value;
+            d.rate            = document.getElementById("rate").value;
+            d.inflation       = document.getElementById("inflation").value;
+            d.compound        = document.getElementById("compound").value;
+            d.duration        = document.getElementById("duration").value;
+            d.addition        = document.getElementById("addition").value;
+            d.addFreq         = document.getElementById("addFreq").value;
+            d.addTiming       = document.getElementById("addTiming").value;
+            d.addSign         = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
+            d.purchaseEnabled = document.getElementById("purchase-toggle").classList.contains("active");
+            d.purchaseAmount  = document.getElementById("purchase-amount").value;
+            d.purchaseMonth   = document.getElementById("purchase-month").value;
+            d.purchaseYear    = document.getElementById("purchase-year").value;
             localStorage.setItem(activeScenario + "_data", JSON.stringify(d));
         }
 
         /* ── load scenarioData → DOM ── */
         function loadScenarioData(scenario) {
             var d = scenarioData[scenario];
-            document.getElementById("principal").value = d.principal;
-            document.getElementById("rate").value      = d.rate;
-            document.getElementById("compound").value  = d.compound;
-            document.getElementById("duration").value  = d.duration;
-            document.getElementById("addition").value  = d.addition;
-            document.getElementById("addFreq").value   = d.addFreq;
-            document.getElementById("addTiming").value = d.addTiming;
+            document.getElementById("principal").value  = d.principal;
+            document.getElementById("rate").value       = d.rate;
+            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("compound").value   = d.compound;
+            document.getElementById("duration").value   = d.duration;
+            document.getElementById("addition").value   = d.addition;
+            document.getElementById("addFreq").value    = d.addFreq;
+            document.getElementById("addTiming").value  = d.addTiming;
             var btn   = document.getElementById("pm-btn");
             var isNeg = (d.addSign === -1);
             btn.classList.toggle("negative", isNeg);
             btn.textContent = isNeg ? "−" : "+";
+
+            var pActive = d.purchaseEnabled || false;
+            var ptBtn   = document.getElementById("purchase-toggle");
+            ptBtn.classList.toggle("active", pActive);
+            ptBtn.textContent = pActive ? "ON" : "OFF";
+            document.getElementById("purchase-amount").value    = d.purchaseAmount || "";
+            document.getElementById("purchase-amount").disabled = !pActive;
+            document.getElementById("purchase-month").value     = d.purchaseMonth  || "1";
+            document.getElementById("purchase-when-row").classList.toggle("hidden", !pActive);
+            updatePurchaseYearOptions(d.purchaseYear || "1");
         }
 
         /* ── switch bottom scenario tab ── */
         function switchScenario(newScenario) {
             if (newScenario === activeScenario) return;
-
-            // 1. Persist current DOM into memory + localStorage
             saveScenarioData();
-
             var prevScenario = activeScenario;
             activeScenario   = newScenario;
 
-            // 2. Moving FORWARD → always carry ending balance as new principal
-            //    Moving BACKWARD → restore saved values (user edits preserved)
             if (SCENARIO_ORDER[newScenario] > SCENARIO_ORDER[prevScenario]) {
                 var bal = calcEndingBalance(scenarioData[prevScenario]);
                 scenarioData[newScenario].principal = bal.toLocaleString("en-CA", { maximumFractionDigits: 2 });
             }
 
-            // 3. Push data into DOM
             loadScenarioData(newScenario);
-
-            // 4. Update UI chrome
             updateScenarioTabs();
             updateTopTabTint();
             updateDefaultsPanel();
-
-            // 5. Render results
             calculate();
         }
 
@@ -574,7 +706,7 @@
             if (name === "defaults") updateDefaultsPanel();
         }
 
-        /* ── defaults panel show/hide ── */
+        /* ── defaults panel visibility ── */
         function updateDefaultsPanel() {
             var isWorking = (activeScenario === "working");
             document.getElementById("defaults-card").classList.toggle("hidden",         !isWorking);
@@ -582,27 +714,39 @@
             document.getElementById("defaults-disabled-msg").classList.toggle("hidden",  isWorking);
         }
 
-        /* ── main calculation (reads DOM only, never writes to scenarioData) ── */
+        /* ── main calculation ── */
         function calculate() {
-            var P       = getField("principal");
-            var r       = (parseFloat(document.getElementById("rate").value)  || 0) / 100;
-            var n       = parseInt(document.getElementById("compound").value) || 1;
-            var t       = parseInt(document.getElementById("duration").value) || 0;
-            var addSign = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
-            var pmt     = getField("addition") * addSign;
-            var pmtFreq = parseInt(document.getElementById("addFreq").value)  || 12;
-            var timing  = document.getElementById("addTiming").value;
+            var P         = getField("principal");
+            var r         = (parseFloat(document.getElementById("rate").value)      || 0) / 100;
+            var inflation = (parseFloat(document.getElementById("inflation").value) || 0) / 100;
+            var n         = parseInt(document.getElementById("compound").value)     || 1;
+            var t         = parseInt(document.getElementById("duration").value)     || 0;
+            var addSign   = document.getElementById("pm-btn").classList.contains("negative") ? -1 : 1;
+            var pmt       = getField("addition") * addSign;
+            var pmtFreq   = parseInt(document.getElementById("addFreq").value)      || 12;
+            var timing    = document.getElementById("addTiming").value;
 
-            var rPP    = r / n;
-            var pmtPP  = pmt * pmtFreq / n;
-            var bal    = P;
-            var totAdd = 0;
-            var totInt = 0;
-            var html   = "";
+            /* purchase */
+            var pActive     = document.getElementById("purchase-toggle").classList.contains("active");
+            var pAmt        = pActive ? rawNum(document.getElementById("purchase-amount").value) : 0;
+            var pMon        = parseInt(document.getElementById("purchase-month").value) || 1;
+            var pYr         = parseInt(document.getElementById("purchase-year").value)  || 1;
+            var pPeriod     = (pYr - 1) * n + Math.floor((pMon - 1) * n / 12);
+            var pApplied    = false;
+            var pAppliedAmt = 0;
+
+            var rPP     = r / n;
+            var pmtPP   = pmt * pmtFreq / n;
+            var bal     = P;
+            var totAdd  = 0;
+            var totInt  = 0;
+            var html    = "";
+            var gPeriod = 0;
 
             for (var year = 1; year <= t; year++) {
                 var opening = bal;
-                var yAdd = 0, yInt = 0;
+                var yAdd = 0, yInt = 0, yCost = 0;
+
                 for (var p = 0; p < n; p++) {
                     var interest;
                     if (timing === "start") {
@@ -614,9 +758,19 @@
                         bal += interest; yInt += interest;
                         bal += pmtPP;    yAdd += pmtPP;
                     }
+                    if (pActive && !pApplied && gPeriod === pPeriod) {
+                        bal -= pAmt; yCost = pAmt;
+                        pApplied = true; pAppliedAmt = pAmt;
+                    }
+                    gPeriod++;
                 }
+
                 totAdd += yAdd;
                 totInt += yInt;
+
+                /* per-year real value (discounted from year 0) */
+                var yReal = realValue(bal, inflation, year);
+
                 html +=
                     '<tr class="row-top">' +
                         '<td class="year-num" rowspan="2">' + year + '.</td>' +
@@ -627,19 +781,55 @@
                         '<td class="center-col">'       + fmt(yInt) + '</td>' +
                         '<td class="right-col ending">' + fmt(bal)  + '</td>' +
                     '</tr>';
+
+                /* real value footnote row (always shown when inflation > 0) */
+                if (inflation > 0) {
+                    html +=
+                        '<tr class="row-real">' +
+                            '<td></td>' +
+                            '<td></td>' +
+                            '<td>[real: ' + fmt(yReal) + ']</td>' +
+                        '</tr>';
+                }
+
+                /* one-time cost footnote */
+                if (yCost > 0) {
+                    html +=
+                        '<tr class="row-cost">' +
+                            '<td></td>' +
+                            '<td colspan="2">⬇ One-Time Cost: −' + fmt(yCost) +
+                                ' (' + MONTHS[pMon - 1] + ', Yr ' + pYr + ')</td>' +
+                        '</tr>';
+                }
             }
 
-            document.getElementById("res-additions").textContent = fmt(totAdd);
-            document.getElementById("res-interest").textContent  = fmt(totInt);
-            document.getElementById("res-ending").textContent    = fmt(bal);
-            document.getElementById("ledger-title").textContent  = t + " YEARS";
-            document.getElementById("ledger-body").innerHTML     = html;
-            document.getElementById("ledger-foot").innerHTML     =
+            /* final real value of ending balance */
+            var endingReal = realValue(bal, inflation, t);
+            var inflPct    = (parseFloat(document.getElementById("inflation").value) || 0).toFixed(2);
+
+            document.getElementById("res-additions").textContent   = fmt(totAdd);
+            document.getElementById("res-interest").textContent    = fmt(totInt);
+            document.getElementById("res-ending").textContent      = fmt(bal);
+            document.getElementById("res-real").textContent        = fmt(endingReal);
+            document.getElementById("res-real-label").textContent  =
+                "Real Value (today's $) @ " + inflPct + "% inflation";
+            document.getElementById("ledger-title").textContent    = t + " YEARS";
+            document.getElementById("ledger-body").innerHTML       = html;
+            document.getElementById("ledger-foot").innerHTML       =
                 '<tr>' +
                     '<td>Total</td>' +
                     '<td class="center-col">' + fmt(totAdd + totInt) + '</td>' +
                     '<td class="right-col">'  + fmt(bal)             + '</td>' +
                 '</tr>';
+
+            /* purchase result row */
+            var prRow = document.getElementById("res-purchase-row");
+            if (pActive && pAppliedAmt > 0) {
+                prRow.classList.remove("hidden");
+                document.getElementById("res-purchase").textContent = "−" + fmt(pAppliedAmt);
+            } else {
+                prRow.classList.add("hidden");
+            }
         }
 
         /* ── pm-btn toggles ── */
@@ -663,19 +853,21 @@
 
         /* ── defaults ── */
         var FALLBACK = {
-            principal: "1,070,000", rate: "7.00", compound: "12", duration: "5",
-            addition: "625", addFreq: "12", addTiming: "end", addSign: 1
+            principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",
+            addition:"625", addFreq:"12", addTiming:"end", addSign:1,
+            purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1"
         };
 
         function loadDefaultsIntoPanel() {
             var d = JSON.parse(localStorage.getItem("calcDefaults")) || FALLBACK;
-            document.getElementById("def-principal").value = d.principal;
-            document.getElementById("def-rate").value      = d.rate;
-            document.getElementById("def-compound").value  = d.compound;
-            document.getElementById("def-duration").value  = d.duration;
-            document.getElementById("def-addition").value  = d.addition;
-            document.getElementById("def-addFreq").value   = d.addFreq;
-            document.getElementById("def-addTiming").value = d.addTiming;
+            document.getElementById("def-principal").value  = d.principal;
+            document.getElementById("def-rate").value       = d.rate;
+            document.getElementById("def-inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("def-compound").value   = d.compound;
+            document.getElementById("def-duration").value   = d.duration;
+            document.getElementById("def-addition").value   = d.addition;
+            document.getElementById("def-addFreq").value    = d.addFreq;
+            document.getElementById("def-addTiming").value  = d.addTiming;
             var btn   = document.getElementById("def-pm-btn");
             var isNeg = (d.addSign === -1);
             btn.classList.toggle("negative", isNeg);
@@ -686,6 +878,7 @@
             var config = {
                 principal: document.getElementById("def-principal").value,
                 rate:      document.getElementById("def-rate").value,
+                inflation: document.getElementById("def-inflation").value,
                 compound:  document.getElementById("def-compound").value,
                 duration:  document.getElementById("def-duration").value,
                 addition:  document.getElementById("def-addition").value,
@@ -701,13 +894,14 @@
 
         function applyDefaults(switchToCalc) {
             var d = JSON.parse(localStorage.getItem("calcDefaults")) || FALLBACK;
-            document.getElementById("principal").value = d.principal;
-            document.getElementById("rate").value      = d.rate;
-            document.getElementById("compound").value  = d.compound;
-            document.getElementById("duration").value  = d.duration;
-            document.getElementById("addition").value  = d.addition;
-            document.getElementById("addFreq").value   = d.addFreq;
-            document.getElementById("addTiming").value = d.addTiming;
+            document.getElementById("principal").value  = d.principal;
+            document.getElementById("rate").value       = d.rate;
+            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("compound").value   = d.compound;
+            document.getElementById("duration").value   = d.duration;
+            document.getElementById("addition").value   = d.addition;
+            document.getElementById("addFreq").value    = d.addFreq;
+            document.getElementById("addTiming").value  = d.addTiming;
             var btn   = document.getElementById("pm-btn");
             var isNeg = (d.addSign === -1);
             btn.classList.toggle("negative", isNeg);
@@ -723,7 +917,6 @@
         /* ── init ── */
         document.addEventListener("DOMContentLoaded", function() {
 
-            // Restore localStorage — strip any stale visited flags
             SCENARIOS.forEach(function(s) {
                 var raw = localStorage.getItem(s + "_data");
                 if (raw) {
@@ -760,31 +953,47 @@
                 });
                 input.addEventListener("blur", function() {
                     input.style.color = "#1c1c1e";
-                    if (input.value.trim() === "") {
-                        input.value = savedValue;
-                    }
+                    if (input.value.trim() === "") input.value = savedValue;
                 });
             });
 
             /* calculator listeners */
-            document.getElementById("principal").addEventListener("input", calculate);
-            document.getElementById("principal").addEventListener("blur",  function() { formatField("principal"); });
-            document.getElementById("addition").addEventListener("input",  calculate);
-            document.getElementById("addition").addEventListener("blur",   function() { formatField("addition"); });
+            document.getElementById("principal").addEventListener("input",  calculate);
+            document.getElementById("principal").addEventListener("blur",   function() { formatField("principal"); });
+            document.getElementById("addition").addEventListener("input",   calculate);
+            document.getElementById("addition").addEventListener("blur",    function() { formatField("addition"); });
             document.getElementById("rate").addEventListener("blur", function() {
                 var v = parseFloat(this.value);
                 this.value = isNaN(v) ? "0.00" : v.toFixed(2);
                 calculate();
             });
+            document.getElementById("inflation").addEventListener("blur", function() {
+                var v = parseFloat(this.value);
+                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
+                calculate();
+            });
             document.getElementById("compound").addEventListener("change",  calculate);
-            document.getElementById("duration").addEventListener("input",   calculate);
+            document.getElementById("duration").addEventListener("input",   function() {
+                updatePurchaseYearOptions();
+                calculate();
+            });
             document.getElementById("addFreq").addEventListener("change",   calculate);
             document.getElementById("addTiming").addEventListener("change", calculate);
 
+            /* purchase listeners */
+            document.getElementById("purchase-amount").addEventListener("input",  calculate);
+            document.getElementById("purchase-amount").addEventListener("blur",   function() { formatField("purchase-amount"); });
+            document.getElementById("purchase-month").addEventListener("change",  calculate);
+            document.getElementById("purchase-year").addEventListener("change",   calculate);
+
             /* defaults listeners */
-            document.getElementById("def-principal").addEventListener("blur", function() { formatField("def-principal"); });
-            document.getElementById("def-addition").addEventListener("blur",  function() { formatField("def-addition"); });
+            document.getElementById("def-principal").addEventListener("blur",  function() { formatField("def-principal"); });
+            document.getElementById("def-addition").addEventListener("blur",   function() { formatField("def-addition"); });
             document.getElementById("def-rate").addEventListener("blur", function() {
+                var v = parseFloat(this.value);
+                this.value = isNaN(v) ? "0.00" : v.toFixed(2);
+            });
+            document.getElementById("def-inflation").addEventListener("blur", function() {
                 var v = parseFloat(this.value);
                 this.value = isNaN(v) ? "0.00" : v.toFixed(2);
             });
