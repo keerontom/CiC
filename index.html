@@ -29,7 +29,7 @@
             flex-direction: column;
             width: 100%;
             height: 100%;
-            gap: 4px;                              /* tightened from 6px */
+            gap: 4px;
             overflow: hidden;
             padding-bottom: calc(20px + constant(safe-area-inset-bottom));
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
@@ -57,9 +57,9 @@
         }
         .tab-btn {
             flex: 1;
-            padding: 8px 4px;                      /* tightened from 10px */
+            padding: 8px 4px;
             border: none;
-            font-size: 12px;                       /* tightened from 13px */
+            font-size: 12px;
             font-weight: 600;
             color: #4a5568;
             cursor: pointer;
@@ -80,17 +80,17 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ── PANELS — overflow HIDDEN = zero scroll ── */
+        /* ── PANELS ── */
         .tab-content {
             display: flex;
             flex-direction: column;
-            gap: 4px;                              /* tightened from 8px */
+            gap: 4px;
             flex: 1;
-            overflow: hidden;                      /* ← KEY FIX: was overflow-y: auto */
+            overflow: hidden;
         }
         .tab-content.hidden { display: none; }
 
-        /* ledger is the only panel that should scroll internally */
+        /* ── LEDGER WRAP — only tbody scrolls; header + thead are sticky ── */
         .ledger-wrap {
             width: 100%;
             background: #fff;
@@ -100,6 +100,47 @@
             box-shadow: 0 1px 6px rgba(0,0,0,.1);
             -webkit-overflow-scrolling: touch;
         }
+        .ledger-header {
+            background: #4a5568; color: #fff;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            padding: 5px 10px;
+            /* ── FIX: stays pinned at top of scroll container ── */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .ledger-table { width: 100%; border-collapse: collapse; }
+        .ledger-table thead {
+            /* ── FIX: pinned just below the ledger-header (~25px tall) ── */
+            position: sticky;
+            top: 25px;
+            z-index: 9;
+            background: #fff;
+        }
+        .ledger-table thead tr { border-bottom: 1px solid #d1d1d6; }
+        .ledger-table thead th {
+            padding: 5px 10px;
+            font-size: 10px; font-weight: 600;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.4;
+            background: #fff;            /* explicit bg so content scrolls behind */
+        }
+        .ledger-table thead th:first-child  { text-align: left; }
+        .ledger-table thead th:nth-child(2) { text-align: center; }
+        .ledger-table thead th:last-child   { text-align: right; }
+        .row-top td  { padding: 5px 10px 1px; border-top: 1px solid #e8e8ec; font-size: 12px; color: #1c1c1e; }
+        .row-bot td  { padding: 1px 10px 2px; font-size: 12px; color: #1c1c1e; }
+        .row-real td { padding: 0 10px 4px; font-size: 10px; font-style: italic; color: #8e8e93; text-align: right; }
+        .row-cost td { padding: 2px 10px 4px; font-size: 11px; font-style: italic; color: #c0392b; text-align: right; }
+        .year-num { font-size: 13px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
+        .center-col { text-align: center; }
+        .right-col  { text-align: right; }
+        .right-col.ending { font-weight: 600; }
+        .ledger-table tfoot td { padding: 6px 10px; border-top: 2px solid #4a5568; font-weight: 700; font-size: 12px; }
+        .ledger-table tfoot td:first-child { text-align: left; color: #4a5568; }
 
         /* ── BOTTOM SCENARIO BAR ── */
         .scenario-bar {
@@ -141,7 +182,7 @@
             color: #fff;
             font-size: 11px; font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 5px 10px;                     /* tightened from 7px 12px */
+            padding: 5px 10px;
         }
         .card-header.defaults-header { background: #2d3748; }
 
@@ -149,7 +190,7 @@
         .input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .input-table tr { border-bottom: 1px solid #e8e8ec; }
         .input-table tr:last-child { border-bottom: none; }
-        .input-table td { padding: 3px 8px; vertical-align: middle; } /* tightened from 6px 10px */
+        .input-table td { padding: 3px 8px; vertical-align: middle; }
         td.label-cell { font-size: 13px; color: #1c1c1e; white-space: nowrap; width: 40%; }
         td.control-cell { width: 60%; text-align: right; }
         .controls { display: flex; align-items: center; justify-content: flex-end; gap: 4px; width: 100%; }
@@ -163,7 +204,7 @@
             color: #1c1c1e;
             background: #fff;
             outline: none;
-            height: 32px;                          /* tightened from 36px */
+            height: 32px;
             width: 100%;
             min-width: 0;
             -webkit-appearance: none;
@@ -174,7 +215,7 @@
         select.input-box { appearance: none; -webkit-appearance: none; text-align-last: right; padding-right: 4px; }
 
         .pm-btn {
-            width: 32px; min-width: 32px; height: 32px;  /* tightened from 36px */
+            width: 32px; min-width: 32px; height: 32px;
             border-radius: 8px;
             border: 1.5px solid #68d391;
             background: #f0fff4;
@@ -189,7 +230,7 @@
 
         /* ── PURCHASE TOGGLE ── */
         .toggle-btn {
-            min-width: 42px; height: 32px;         /* tightened from 36px */
+            min-width: 42px; height: 32px;
             border-radius: 8px;
             border: 1.5px solid #d1d1d6;
             background: #f2f2f7;
@@ -207,7 +248,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 10px;                     /* tightened from 8px 12px */
+            padding: 5px 10px;
             border-bottom: 1px solid #e8e8ec;
         }
         .result-row:last-child { border-bottom: none; }
@@ -217,37 +258,6 @@
         .result-value.highlight { color: #2c7a4b; font-size: 17px; }
         .result-value.real      { color: #8e8e93; font-size: 12px; font-style: italic; font-weight: 500; }
         .result-value.cost      { color: #c0392b; }
-
-        /* ── LEDGER ── */
-        .ledger-header {
-            background: #4a5568; color: #fff;
-            font-size: 11px; font-weight: 600;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 5px 10px;
-        }
-        .ledger-table { width: 100%; border-collapse: collapse; }
-        .ledger-table thead tr { border-bottom: 1px solid #d1d1d6; }
-        .ledger-table thead th {
-            padding: 5px 10px;
-            font-size: 10px; font-weight: 600;
-            color: #8e8e93;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            line-height: 1.4;
-        }
-        .ledger-table thead th:first-child  { text-align: left; }
-        .ledger-table thead th:nth-child(2) { text-align: center; }
-        .ledger-table thead th:last-child   { text-align: right; }
-        .row-top td  { padding: 5px 10px 1px; border-top: 1px solid #e8e8ec; font-size: 12px; color: #1c1c1e; }
-        .row-bot td  { padding: 1px 10px 2px; font-size: 12px; color: #1c1c1e; }
-        .row-real td { padding: 0 10px 4px; font-size: 10px; font-style: italic; color: #8e8e93; text-align: right; }
-        .row-cost td { padding: 2px 10px 4px; font-size: 11px; font-style: italic; color: #c0392b; text-align: right; }
-        .year-num { font-size: 13px; font-weight: 600; color: #4a5568; text-align: left; vertical-align: middle; }
-        .center-col { text-align: center; }
-        .right-col  { text-align: right; }
-        .right-col.ending { font-weight: 600; }
-        .ledger-table tfoot td { padding: 6px 10px; border-top: 2px solid #4a5568; font-weight: 700; font-size: 12px; }
-        .ledger-table tfoot td:first-child { text-align: left; color: #4a5568; }
 
         /* ── DEFAULTS ── */
         .defaults-actions { display: flex; gap: 8px; width: 100%; padding: 4px 0 0; }
@@ -335,8 +345,8 @@
                         <td class="label-cell">Add at</td>
                         <td class="control-cell">
                             <select id="addTiming" class="input-box">
-                                <option value="start">Start of period</option>
-                                <option value="end" selected>End of period</option>
+                                <option value="start" selected>Start of period</option><!-- ← changed -->
+                                <option value="end">End of period</option>
                             </select>
                         </td>
                     </tr>
@@ -399,8 +409,10 @@
         <!-- LEDGER PANEL -->
         <div id="panel-ledger" class="tab-content hidden">
             <div class="ledger-wrap">
+                <!-- sticky title bar -->
                 <div class="ledger-header" id="ledger-title">5 YEARS</div>
                 <table class="ledger-table">
+                    <!-- sticky column headers -->
                     <thead>
                         <tr>
                             <th>Year</th>
@@ -408,6 +420,7 @@
                             <th class="right-col">Beg. Balance<br>End. Balance</th>
                         </tr>
                     </thead>
+                    <!-- scrolling body -->
                     <tbody id="ledger-body"></tbody>
                     <tfoot id="ledger-foot">
                         <tr>
@@ -481,8 +494,8 @@
                         <td class="label-cell">Add at</td>
                         <td class="control-cell">
                             <select id="def-addTiming" class="input-box">
-                                <option value="start">Start of period</option>
-                                <option value="end" selected>End of period</option>
+                                <option value="start" selected>Start of period</option><!-- ← changed -->
+                                <option value="end">End of period</option>
                             </select>
                         </td>
                     </tr>
@@ -521,9 +534,10 @@
         var activeScenario = "working";
 
         var scenarioData = {
-            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"end", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
+            /* ── addTiming defaulted to "start" everywhere ── */
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
         };
 
         var TOP_TINTS = {
@@ -569,7 +583,7 @@
             var P = rawNum(d.principal), r = (parseFloat(d.rate)||0)/100;
             var n = parseInt(d.compound)||1, t = parseInt(d.duration)||0;
             var pmt = rawNum(d.addition)*(d.addSign||1);
-            var pmtFreq = parseInt(d.addFreq)||12, timing = d.addTiming||"end";
+            var pmtFreq = parseInt(d.addFreq)||12, timing = d.addTiming||"start";
             var rPP = r/n, pmtPP = pmt*pmtFreq/n, bal = P;
             var pActive = d.purchaseEnabled||false, pAmt = rawNum(d.purchaseAmount);
             var pYr = parseInt(d.purchaseYear)||1, pMon = parseInt(d.purchaseMonth)||1;
@@ -608,20 +622,17 @@
             var d = scenarioData[scenario];
             document.getElementById("principal").value  = d.principal;
             document.getElementById("rate").value       = d.rate;
-            document.getElementById("inflation").value  = d.inflation!==undefined ? d.inflation : "2.00";
+            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
             document.getElementById("compound").value   = d.compound;
             document.getElementById("duration").value   = d.duration;
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
-            document.getElementById("addTiming").value  = d.addTiming;
-            var btn = document.getElementById("pm-btn");
-            var isNeg = (d.addSign===-1);
-            btn.classList.toggle("negative", isNeg);
-            btn.textContent = isNeg ? "−" : "+";
+            document.getElementById("addTiming").value  = d.addTiming || "start";
+            var btn = document.getElementById("pm-btn"), isNeg = (d.addSign===-1);
+            btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
             var pActive = d.purchaseEnabled||false;
             var ptBtn = document.getElementById("purchase-toggle");
-            ptBtn.classList.toggle("active", pActive);
-            ptBtn.textContent = pActive ? "ON" : "OFF";
+            ptBtn.classList.toggle("active", pActive); ptBtn.textContent = pActive ? "ON" : "OFF";
             document.getElementById("purchase-amount").value    = d.purchaseAmount||"";
             document.getElementById("purchase-amount").disabled = !pActive;
             document.getElementById("purchase-month").value     = d.purchaseMonth||"1";
@@ -750,7 +761,7 @@
 
         var FALLBACK = {
             principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",
-            addition:"625", addFreq:"12", addTiming:"end", addSign:1,
+            addition:"625", addFreq:"12", addTiming:"start", addSign:1,  /* ← changed */
             purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1"
         };
 
@@ -763,7 +774,7 @@
             document.getElementById("def-duration").value  = d.duration;
             document.getElementById("def-addition").value  = d.addition;
             document.getElementById("def-addFreq").value   = d.addFreq;
-            document.getElementById("def-addTiming").value = d.addTiming;
+            document.getElementById("def-addTiming").value = d.addTiming||"start";
             var btn=document.getElementById("def-pm-btn"), isNeg=(d.addSign===-1);
             btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
         }
@@ -795,7 +806,7 @@
             document.getElementById("duration").value   = d.duration;
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
-            document.getElementById("addTiming").value  = d.addTiming;
+            document.getElementById("addTiming").value  = d.addTiming||"start";
             var btn=document.getElementById("pm-btn"), isNeg=(d.addSign===-1);
             btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
             calculate();
