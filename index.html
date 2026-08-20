@@ -98,8 +98,8 @@
             overflow-y: auto;
             flex: 1;
             box-shadow: 0 1px 6px rgba(0,0,0,.1);
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;   /* ← FIX: no bounce propagation at top/bottom */
+            /* JS touch guard handles iOS bounce; CSS belt-and-suspenders */
+            overscroll-behavior-y: contain;
         }
         .ledger-header {
             background: #4a5568; color: #fff;
@@ -406,7 +406,7 @@
 
         <!-- LEDGER PANEL -->
         <div id="panel-ledger" class="tab-content hidden">
-            <div class="ledger-wrap">
+            <div class="ledger-wrap" id="ledger-wrap">
                 <div class="ledger-header" id="ledger-title">5 YEARS</div>
                 <table class="ledger-table">
                     <thead>
@@ -428,9 +428,9 @@
             </div>
         </div>
 
-        <!-- DEFAULTS PANEL — now active for all scenarios ── -->
+        <!-- DEFAULTS PANEL -->
         <div id="panel-defaults" class="tab-content hidden">
-            <div class="card" id="defaults-card">
+            <div class="card">
                 <div class="card-header defaults-header" id="defaults-header-label">Working Years — Defaults</div>
                 <table class="input-table">
                     <tr>
@@ -526,17 +526,27 @@
         var SCENARIOS      = ["working", "bridge", "retirement"];
         var activeScenario = "working";
 
-        /* ── per-scenario fallback defaults ── */
+        /* ── per-scenario hard-coded fallbacks ── */
         var FALLBACKS = {
-            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign: 1 },
-            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign: 1 },
-            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign:-1 }
+            working: {
+                principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12",
+                duration:"5",  addition:"1,000", addFreq:"12", addTiming:"start", addSign: 1
+            },
+            bridge: {
+                principal:"", rate:"6.00", inflation:"2.50", compound:"12",
+                duration:"10", addition:"7,500", addFreq:"12", addTiming:"start", addSign:-1
+            },
+            retirement: {
+                principal:"", rate:"4.50", inflation:"3.00", compound:"12",
+                duration:"40", addition:"8,500", addFreq:"12", addTiming:"start", addSign:-1
+            }
         };
 
+        /* scenarioData seeds from FALLBACKS and gets overwritten by localStorage on init */
         var scenarioData = {
-            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1,  purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1,  purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:-1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
+            working:    Object.assign({ purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }, FALLBACKS.working),
+            bridge:     Object.assign({ purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }, FALLBACKS.bridge),
+            retirement: Object.assign({ purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }, FALLBACKS.retirement)
         };
 
         var TOP_TINTS = {
@@ -639,7 +649,6 @@
             updatePurchaseYearOptions(d.purchaseYear||"1");
         }
 
-        /* ── per-scenario defaults key ── */
         function defaultsKey(scenario) {
             return (scenario || activeScenario) + "_defaults";
         }
@@ -693,10 +702,7 @@
             if (switchToCalc) switchTopTab("calculator");
         }
 
-        /* ── reset applies the active scenario's saved defaults ── */
-        function resetCalculator() {
-            applyDefaults(true);
-        }
+        function resetCalculator() { applyDefaults(true); }
 
         function switchScenario(newScenario) {
             if (newScenario===activeScenario) return;
@@ -710,7 +716,7 @@
             loadScenarioData(newScenario);
             updateScenarioTabs();
             updateTopTabTint();
-            loadDefaultsIntoPanel();   /* reload defaults for the newly active scenario */
+            loadDefaultsIntoPanel();
             calculate();
         }
 
@@ -811,10 +817,13 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+
+            /* restore saved scenario data */
             SCENARIOS.forEach(function(s) {
                 var raw=localStorage.getItem(s+"_data");
                 if (raw) { try { var p=JSON.parse(raw); delete p.visited; scenarioData[s]=p; } catch(e){} }
             });
+
             loadDefaultsIntoPanel();
             switchTopTab("calculator");
             loadScenarioData("working");
@@ -822,6 +831,23 @@
             updateTopTabTint();
             calculate();
 
+            /* ── iOS bounce fix: prevent overscroll at ledger boundaries ── */
+            var lw = document.getElementById("ledger-wrap");
+            var touchStartY = 0;
+            lw.addEventListener("touchstart", function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            lw.addEventListener("touchmove", function(e) {
+                var deltaY   = e.touches[0].clientY - touchStartY;
+                var atTop    = lw.scrollTop === 0;
+                var atBottom = lw.scrollTop + lw.clientHeight >= lw.scrollHeight - 1;
+                /* block the pull when already at a boundary */
+                if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });   /* passive:false required to allow preventDefault */
+
+            /* grey-out UX on focus */
             document.querySelectorAll("input").forEach(function(input) {
                 var savedValue="", cleared=false;
                 input.addEventListener("focus", function(){ savedValue=input.value; cleared=false; input.style.color="#c0c0c8"; });
