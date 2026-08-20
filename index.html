@@ -90,35 +90,36 @@
         }
         .tab-content.hidden { display: none; }
 
-        /* ── LEDGER WRAP ── */
-        .ledger-wrap {
-            width: 100%;
+        /* ── LEDGER BOX — flex column; only tbody region scrolls ── */
+        .ledger-box {
+            display: flex;
+            flex-direction: column;
             background: #fff;
             border-radius: 10px;
-            overflow-y: auto;
+            overflow: hidden;
             flex: 1;
             box-shadow: 0 1px 6px rgba(0,0,0,.1);
-            /* JS touch guard handles iOS bounce; CSS belt-and-suspenders */
-            overscroll-behavior-y: contain;
         }
+
+        /* Title bar — lives OUTSIDE the scroll area, never moves */
         .ledger-header {
             background: #4a5568; color: #fff;
             font-size: 11px; font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase;
             padding: 5px 10px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            flex-shrink: 0;
         }
-        .ledger-table { width: 100%; border-collapse: collapse; }
-        .ledger-table thead {
-            position: sticky;
-            top: 25px;
-            z-index: 9;
+
+        /* Column-header table — lives OUTSIDE the scroll area, never moves */
+        .ledger-col-headers {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            flex-shrink: 0;
+            border-bottom: 1px solid #d1d1d6;
             background: #fff;
         }
-        .ledger-table thead tr { border-bottom: 1px solid #d1d1d6; }
-        .ledger-table thead th {
+        .ledger-col-headers th {
             padding: 5px 10px;
             font-size: 10px; font-weight: 600;
             color: #8e8e93;
@@ -127,9 +128,21 @@
             line-height: 1.4;
             background: #fff;
         }
-        .ledger-table thead th:first-child  { text-align: left; }
-        .ledger-table thead th:nth-child(2) { text-align: center; }
-        .ledger-table thead th:last-child   { text-align: right; }
+        .ledger-col-headers th:first-child  { text-align: left; }
+        .ledger-col-headers th:nth-child(2) { text-align: center; }
+        .ledger-col-headers th:last-child   { text-align: right; }
+
+        /* The ONLY thing that scrolls — no bounce, no visible bar */
+        .ledger-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            /* ── KEY: removing -webkit-overflow-scrolling:touch kills elastic bounce ── */
+        }
+        .ledger-scroll::-webkit-scrollbar { display: none; }   /* hide bar — Chrome/Safari */
+        .ledger-scroll { scrollbar-width: none; }              /* hide bar — Firefox        */
+
+        .ledger-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .row-top td  { padding: 5px 10px 1px; border-top: 1px solid #e8e8ec; font-size: 12px; color: #1c1c1e; }
         .row-bot td  { padding: 1px 10px 2px; font-size: 12px; color: #1c1c1e; }
         .row-real td { padding: 0 10px 4px; font-size: 10px; font-style: italic; color: #8e8e93; text-align: right; }
@@ -406,25 +419,44 @@
 
         <!-- LEDGER PANEL -->
         <div id="panel-ledger" class="tab-content hidden">
-            <div class="ledger-wrap" id="ledger-wrap">
+            <div class="ledger-box">
+
+                <!-- ① Title — outside scroll, always static -->
                 <div class="ledger-header" id="ledger-title">5 YEARS</div>
-                <table class="ledger-table">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th class="center-col">Additions<br>Interest</th>
-                            <th class="right-col">Beg. Balance<br>End. Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ledger-body"></tbody>
-                    <tfoot id="ledger-foot">
-                        <tr>
-                            <td>Total</td>
-                            <td class="center-col">—</td>
-                            <td class="right-col">—</td>
-                        </tr>
-                    </tfoot>
+
+                <!-- ② Column headers — outside scroll, always static -->
+                <table class="ledger-col-headers">
+                    <colgroup>
+                        <col style="width:18%">
+                        <col style="width:41%">
+                        <col style="width:41%">
+                    </colgroup>
+                    <tr>
+                        <th>Year</th>
+                        <th class="center-col">Additions<br>Interest</th>
+                        <th class="right-col">Beg. Balance<br>End. Balance</th>
+                    </tr>
                 </table>
+
+                <!-- ③ Only this div scrolls -->
+                <div class="ledger-scroll" id="ledger-scroll">
+                    <table class="ledger-table">
+                        <colgroup>
+                            <col style="width:18%">
+                            <col style="width:41%">
+                            <col style="width:41%">
+                        </colgroup>
+                        <tbody id="ledger-body"></tbody>
+                        <tfoot id="ledger-foot">
+                            <tr>
+                                <td>Total</td>
+                                <td class="center-col">—</td>
+                                <td class="right-col">—</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
             </div>
         </div>
 
@@ -520,29 +552,18 @@
         }
         function getField(id) { return rawNum(document.getElementById(id).value); }
 
-        var MONTHS         = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
-        var SCENARIO_LABELS= { working: "Working Years", bridge: "Bridge Years", retirement: "Retirement" };
-        var SCENARIOS      = ["working", "bridge", "retirement"];
-        var activeScenario = "working";
+        var MONTHS          = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        var SCENARIO_ORDER  = { working: 0, bridge: 1, retirement: 2 };
+        var SCENARIO_LABELS = { working: "Working Years", bridge: "Bridge Years", retirement: "Retirement" };
+        var SCENARIOS       = ["working", "bridge", "retirement"];
+        var activeScenario  = "working";
 
-        /* ── per-scenario hard-coded fallbacks ── */
         var FALLBACKS = {
-            working: {
-                principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12",
-                duration:"5",  addition:"1,000", addFreq:"12", addTiming:"start", addSign: 1
-            },
-            bridge: {
-                principal:"", rate:"6.00", inflation:"2.50", compound:"12",
-                duration:"10", addition:"7,500", addFreq:"12", addTiming:"start", addSign:-1
-            },
-            retirement: {
-                principal:"", rate:"4.50", inflation:"3.00", compound:"12",
-                duration:"40", addition:"8,500", addFreq:"12", addTiming:"start", addSign:-1
-            }
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",  addition:"1,000", addFreq:"12", addTiming:"start", addSign: 1 },
+            bridge:     { principal:"",          rate:"6.00", inflation:"2.50", compound:"12", duration:"10", addition:"7,500", addFreq:"12", addTiming:"start", addSign:-1 },
+            retirement: { principal:"",          rate:"4.50", inflation:"3.00", compound:"12", duration:"40", addition:"8,500", addFreq:"12", addTiming:"start", addSign:-1 }
         };
 
-        /* scenarioData seeds from FALLBACKS and gets overwritten by localStorage on init */
         var scenarioData = {
             working:    Object.assign({ purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }, FALLBACKS.working),
             bridge:     Object.assign({ purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }, FALLBACKS.bridge),
@@ -649,9 +670,7 @@
             updatePurchaseYearOptions(d.purchaseYear||"1");
         }
 
-        function defaultsKey(scenario) {
-            return (scenario || activeScenario) + "_defaults";
-        }
+        function defaultsKey(scenario) { return (scenario || activeScenario) + "_defaults"; }
 
         function loadDefaultsIntoPanel() {
             var d = JSON.parse(localStorage.getItem(defaultsKey())) || FALLBACKS[activeScenario];
@@ -817,13 +836,10 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-
-            /* restore saved scenario data */
             SCENARIOS.forEach(function(s) {
                 var raw=localStorage.getItem(s+"_data");
                 if (raw) { try { var p=JSON.parse(raw); delete p.visited; scenarioData[s]=p; } catch(e){} }
             });
-
             loadDefaultsIntoPanel();
             switchTopTab("calculator");
             loadScenarioData("working");
@@ -831,21 +847,16 @@
             updateTopTabTint();
             calculate();
 
-            /* ── iOS bounce fix: prevent overscroll at ledger boundaries ── */
-            var lw = document.getElementById("ledger-wrap");
-            var touchStartY = 0;
-            lw.addEventListener("touchstart", function(e) {
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-            lw.addEventListener("touchmove", function(e) {
-                var deltaY   = e.touches[0].clientY - touchStartY;
-                var atTop    = lw.scrollTop === 0;
-                var atBottom = lw.scrollTop + lw.clientHeight >= lw.scrollHeight - 1;
-                /* block the pull when already at a boundary */
-                if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
-                    e.preventDefault();
-                }
-            }, { passive: false });   /* passive:false required to allow preventDefault */
+            /* ── iOS bounce fix: block overscroll at boundaries ── */
+            var ls = document.getElementById("ledger-scroll");
+            var ty = 0;
+            ls.addEventListener("touchstart", function(e){ ty = e.touches[0].clientY; }, { passive:true });
+            ls.addEventListener("touchmove", function(e) {
+                var dy      = e.touches[0].clientY - ty;
+                var atTop   = ls.scrollTop <= 0;
+                var atBot   = ls.scrollTop + ls.clientHeight >= ls.scrollHeight - 1;
+                if ((atTop && dy > 0) || (atBot && dy < 0)) e.preventDefault();
+            }, { passive:false });
 
             /* grey-out UX on focus */
             document.querySelectorAll("input").forEach(function(input) {
