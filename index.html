@@ -90,7 +90,7 @@
         }
         .tab-content.hidden { display: none; }
 
-        /* ── LEDGER WRAP — only tbody scrolls; header + thead are sticky ── */
+        /* ── LEDGER WRAP ── */
         .ledger-wrap {
             width: 100%;
             background: #fff;
@@ -99,20 +99,19 @@
             flex: 1;
             box-shadow: 0 1px 6px rgba(0,0,0,.1);
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;   /* ← FIX: no bounce propagation at top/bottom */
         }
         .ledger-header {
             background: #4a5568; color: #fff;
             font-size: 11px; font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase;
             padding: 5px 10px;
-            /* ── FIX: stays pinned at top of scroll container ── */
             position: sticky;
             top: 0;
             z-index: 10;
         }
         .ledger-table { width: 100%; border-collapse: collapse; }
         .ledger-table thead {
-            /* ── FIX: pinned just below the ledger-header (~25px tall) ── */
             position: sticky;
             top: 25px;
             z-index: 9;
@@ -126,7 +125,7 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             line-height: 1.4;
-            background: #fff;            /* explicit bg so content scrolls behind */
+            background: #fff;
         }
         .ledger-table thead th:first-child  { text-align: left; }
         .ledger-table thead th:nth-child(2) { text-align: center; }
@@ -264,7 +263,6 @@
         .action-btn { flex: 1; height: 38px; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .action-btn.save  { background: #2d3748; color: #fff; }
         .action-btn.apply { background: #68d391; color: #1c4731; }
-        .disabled-msg { text-align: center; padding: 20px 12px; color: #8e8e93; font-size: 13px; font-style: italic; }
 
         /* ── MISC ── */
         input[type=number]::-webkit-inner-spin-button,
@@ -345,7 +343,7 @@
                         <td class="label-cell">Add at</td>
                         <td class="control-cell">
                             <select id="addTiming" class="input-box">
-                                <option value="start" selected>Start of period</option><!-- ← changed -->
+                                <option value="start" selected>Start of period</option>
                                 <option value="end">End of period</option>
                             </select>
                         </td>
@@ -409,10 +407,8 @@
         <!-- LEDGER PANEL -->
         <div id="panel-ledger" class="tab-content hidden">
             <div class="ledger-wrap">
-                <!-- sticky title bar -->
                 <div class="ledger-header" id="ledger-title">5 YEARS</div>
                 <table class="ledger-table">
-                    <!-- sticky column headers -->
                     <thead>
                         <tr>
                             <th>Year</th>
@@ -420,7 +416,6 @@
                             <th class="right-col">Beg. Balance<br>End. Balance</th>
                         </tr>
                     </thead>
-                    <!-- scrolling body -->
                     <tbody id="ledger-body"></tbody>
                     <tfoot id="ledger-foot">
                         <tr>
@@ -433,10 +428,10 @@
             </div>
         </div>
 
-        <!-- DEFAULTS PANEL -->
+        <!-- DEFAULTS PANEL — now active for all scenarios ── -->
         <div id="panel-defaults" class="tab-content hidden">
             <div class="card" id="defaults-card">
-                <div class="card-header defaults-header">Defaults</div>
+                <div class="card-header defaults-header" id="defaults-header-label">Working Years — Defaults</div>
                 <table class="input-table">
                     <tr>
                         <td class="label-cell">Principal</td>
@@ -494,19 +489,16 @@
                         <td class="label-cell">Add at</td>
                         <td class="control-cell">
                             <select id="def-addTiming" class="input-box">
-                                <option value="start" selected>Start of period</option><!-- ← changed -->
+                                <option value="start" selected>Start of period</option>
                                 <option value="end">End of period</option>
                             </select>
                         </td>
                     </tr>
                 </table>
             </div>
-            <div class="defaults-actions" id="defaults-actions">
+            <div class="defaults-actions">
                 <button class="action-btn save"  onclick="saveDefaults()">💾 Save Defaults</button>
                 <button class="action-btn apply" onclick="applyDefaults(true)">↺ Apply to Calc</button>
-            </div>
-            <div id="defaults-disabled-msg" class="disabled-msg hidden">
-                Defaults apply to Working Years only.
             </div>
         </div>
 
@@ -530,14 +522,21 @@
 
         var MONTHS         = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
         var SCENARIO_ORDER = { working: 0, bridge: 1, retirement: 2 };
+        var SCENARIO_LABELS= { working: "Working Years", bridge: "Bridge Years", retirement: "Retirement" };
         var SCENARIOS      = ["working", "bridge", "retirement"];
         var activeScenario = "working";
 
+        /* ── per-scenario fallback defaults ── */
+        var FALLBACKS = {
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign: 1 },
+            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign: 1 },
+            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625",  addFreq:"12", addTiming:"start", addSign:-1 }
+        };
+
         var scenarioData = {
-            /* ── addTiming defaulted to "start" everywhere ── */
-            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
-            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1,  purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            bridge:     { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:1,  purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" },
+            retirement: { principal:"",          rate:"7.00", inflation:"2.00", compound:"12", duration:"5", addition:"625", addFreq:"12", addTiming:"start", addSign:-1, purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1" }
         };
 
         var TOP_TINTS = {
@@ -640,6 +639,65 @@
             updatePurchaseYearOptions(d.purchaseYear||"1");
         }
 
+        /* ── per-scenario defaults key ── */
+        function defaultsKey(scenario) {
+            return (scenario || activeScenario) + "_defaults";
+        }
+
+        function loadDefaultsIntoPanel() {
+            var d = JSON.parse(localStorage.getItem(defaultsKey())) || FALLBACKS[activeScenario];
+            document.getElementById("defaults-header-label").textContent = SCENARIO_LABELS[activeScenario] + " — Defaults";
+            document.getElementById("def-principal").value  = d.principal !== undefined ? d.principal : "";
+            document.getElementById("def-rate").value       = d.rate;
+            document.getElementById("def-inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("def-compound").value   = d.compound;
+            document.getElementById("def-duration").value   = d.duration;
+            document.getElementById("def-addition").value   = d.addition;
+            document.getElementById("def-addFreq").value    = d.addFreq;
+            document.getElementById("def-addTiming").value  = d.addTiming || "start";
+            var btn = document.getElementById("def-pm-btn"), isNeg = (d.addSign===-1);
+            btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
+        }
+
+        function saveDefaults() {
+            var config = {
+                principal: document.getElementById("def-principal").value,
+                rate:      document.getElementById("def-rate").value,
+                inflation: document.getElementById("def-inflation").value,
+                compound:  document.getElementById("def-compound").value,
+                duration:  document.getElementById("def-duration").value,
+                addition:  document.getElementById("def-addition").value,
+                addFreq:   document.getElementById("def-addFreq").value,
+                addTiming: document.getElementById("def-addTiming").value,
+                addSign:   document.getElementById("def-pm-btn").classList.contains("negative") ? -1 : 1
+            };
+            localStorage.setItem(defaultsKey(), JSON.stringify(config));
+            var btn = document.querySelector(".action-btn.save");
+            btn.textContent = "✓ Saved!";
+            setTimeout(function(){ btn.textContent = "💾 Save Defaults"; }, 1500);
+        }
+
+        function applyDefaults(switchToCalc) {
+            var d = JSON.parse(localStorage.getItem(defaultsKey())) || FALLBACKS[activeScenario];
+            document.getElementById("principal").value  = d.principal !== undefined ? d.principal : "";
+            document.getElementById("rate").value       = d.rate;
+            document.getElementById("inflation").value  = d.inflation !== undefined ? d.inflation : "2.00";
+            document.getElementById("compound").value   = d.compound;
+            document.getElementById("duration").value   = d.duration;
+            document.getElementById("addition").value   = d.addition;
+            document.getElementById("addFreq").value    = d.addFreq;
+            document.getElementById("addTiming").value  = d.addTiming || "start";
+            var btn = document.getElementById("pm-btn"), isNeg = (d.addSign===-1);
+            btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
+            calculate();
+            if (switchToCalc) switchTopTab("calculator");
+        }
+
+        /* ── reset applies the active scenario's saved defaults ── */
+        function resetCalculator() {
+            applyDefaults(true);
+        }
+
         function switchScenario(newScenario) {
             if (newScenario===activeScenario) return;
             saveScenarioData();
@@ -652,7 +710,7 @@
             loadScenarioData(newScenario);
             updateScenarioTabs();
             updateTopTabTint();
-            updateDefaultsPanel();
+            loadDefaultsIntoPanel();   /* reload defaults for the newly active scenario */
             calculate();
         }
 
@@ -667,14 +725,7 @@
             document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
             var cls = name==="calculator"?".calc-tab":name==="ledger"?".ledger-tab":".defaults-tab";
             document.querySelector(cls).classList.add("active");
-            if (name==="defaults") updateDefaultsPanel();
-        }
-
-        function updateDefaultsPanel() {
-            var isWorking = (activeScenario==="working");
-            document.getElementById("defaults-card").classList.toggle("hidden",        !isWorking);
-            document.getElementById("defaults-actions").classList.toggle("hidden",     !isWorking);
-            document.getElementById("defaults-disabled-msg").classList.toggle("hidden", isWorking);
+            if (name==="defaults") loadDefaultsIntoPanel();
         }
 
         function calculate() {
@@ -757,64 +808,6 @@
             var el=document.getElementById(id), num=rawNum(el.value);
             el.value=num.toLocaleString("en-CA",{maximumFractionDigits:2});
             calculate();
-        }
-
-        var FALLBACK = {
-            principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",
-            addition:"625", addFreq:"12", addTiming:"start", addSign:1,  /* ← changed */
-            purchaseEnabled:false, purchaseAmount:"", purchaseMonth:"1", purchaseYear:"1"
-        };
-
-        function loadDefaultsIntoPanel() {
-            var d=JSON.parse(localStorage.getItem("calcDefaults"))||FALLBACK;
-            document.getElementById("def-principal").value = d.principal;
-            document.getElementById("def-rate").value      = d.rate;
-            document.getElementById("def-inflation").value = d.inflation!==undefined?d.inflation:"2.00";
-            document.getElementById("def-compound").value  = d.compound;
-            document.getElementById("def-duration").value  = d.duration;
-            document.getElementById("def-addition").value  = d.addition;
-            document.getElementById("def-addFreq").value   = d.addFreq;
-            document.getElementById("def-addTiming").value = d.addTiming||"start";
-            var btn=document.getElementById("def-pm-btn"), isNeg=(d.addSign===-1);
-            btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
-        }
-
-        function saveDefaults() {
-            var config={
-                principal:document.getElementById("def-principal").value,
-                rate:document.getElementById("def-rate").value,
-                inflation:document.getElementById("def-inflation").value,
-                compound:document.getElementById("def-compound").value,
-                duration:document.getElementById("def-duration").value,
-                addition:document.getElementById("def-addition").value,
-                addFreq:document.getElementById("def-addFreq").value,
-                addTiming:document.getElementById("def-addTiming").value,
-                addSign:document.getElementById("def-pm-btn").classList.contains("negative")?-1:1
-            };
-            localStorage.setItem("calcDefaults",JSON.stringify(config));
-            var btn=document.querySelector(".action-btn.save");
-            btn.textContent="✓ Saved!";
-            setTimeout(function(){btn.textContent="💾 Save Defaults";},1500);
-        }
-
-        function applyDefaults(switchToCalc) {
-            var d=JSON.parse(localStorage.getItem("calcDefaults"))||FALLBACK;
-            document.getElementById("principal").value  = d.principal;
-            document.getElementById("rate").value       = d.rate;
-            document.getElementById("inflation").value  = d.inflation!==undefined?d.inflation:"2.00";
-            document.getElementById("compound").value   = d.compound;
-            document.getElementById("duration").value   = d.duration;
-            document.getElementById("addition").value   = d.addition;
-            document.getElementById("addFreq").value    = d.addFreq;
-            document.getElementById("addTiming").value  = d.addTiming||"start";
-            var btn=document.getElementById("pm-btn"), isNeg=(d.addSign===-1);
-            btn.classList.toggle("negative",isNeg); btn.textContent=isNeg?"−":"+";
-            calculate();
-            if (switchToCalc) switchTopTab("calculator");
-        }
-
-        function resetCalculator() {
-            if (activeScenario==="working") applyDefaults(true);
         }
 
         document.addEventListener("DOMContentLoaded", function() {
