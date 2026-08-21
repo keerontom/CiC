@@ -233,7 +233,7 @@
         }
         .pm-btn.negative { background: #fff0f0; border-color: #e57373; color: #c0392b; }
 
-        /* ── TOGGLES (purchase + inflation-adj share this style) ── */
+        /* ── TOGGLES ── */
         .toggle-btn {
             min-width: 42px; height: 32px;
             border-radius: 8px;
@@ -246,8 +246,8 @@
             -webkit-tap-highlight-color: transparent;
             transition: all 0.15s;
         }
-        .toggle-btn.active         { background: #fff0f0; border-color: #e57373; color: #c0392b; }
-        /* CPI toggle uses a distinct colour when ON so it reads differently from "cost" red */
+        .toggle-btn.active { background: #fff0f0; border-color: #e57373; color: #c0392b; }
+        /* CPI toggle — blue when ON, distinct from red cost toggle */
         .toggle-btn.cpi-toggle.active { background: #ebf8ff; border-color: #63b3ed; color: #2b6cb0; }
 
         /* ── RESULTS ── */
@@ -307,13 +307,13 @@
                             <input type="number" id="rate" class="input-box" step="0.25" inputmode="decimal">
                         </td>
                     </tr>
-                    <!-- ── Inflation row: number + CPI-adj toggle ── -->
+                    <!-- Inflation % — ADJ toggle LEFT of input, global across all scenarios -->
                     <tr>
                         <td class="label-cell">Inflation %</td>
                         <td class="control-cell">
                             <div class="controls">
-                                <input type="number" id="inflation" class="input-box medium" step="0.25" inputmode="decimal">
                                 <button class="toggle-btn cpi-toggle" id="infl-adj-toggle" onclick="toggleInflAdj()">OFF</button>
+                                <input type="number" id="inflation" class="input-box medium" step="0.25" inputmode="decimal">
                             </div>
                         </td>
                     </tr>
@@ -452,7 +452,7 @@
             </div>
         </div>
 
-        <!-- DEFAULTS PANEL -->
+        <!-- DEFAULTS PANEL — no inflAdj here; it's a global setting -->
         <div id="panel-defaults" class="tab-content hidden">
             <div class="card">
                 <div class="card-header defaults-header" id="defaults-header-label">Working Years — Defaults</div>
@@ -469,14 +469,10 @@
                             <input type="number" id="def-rate" class="input-box" step="0.25" inputmode="decimal">
                         </td>
                     </tr>
-                    <!-- ── Inflation row in defaults: same toggle ── -->
                     <tr>
                         <td class="label-cell">Inflation %</td>
                         <td class="control-cell">
-                            <div class="controls">
-                                <input type="number" id="def-inflation" class="input-box medium" step="0.25" inputmode="decimal">
-                                <button class="toggle-btn cpi-toggle" id="def-infl-adj-toggle" onclick="toggleDefInflAdj()">OFF</button>
-                            </div>
+                            <input type="number" id="def-inflation" class="input-box" step="0.25" inputmode="decimal">
                         </td>
                     </tr>
                     <tr>
@@ -554,10 +550,13 @@
         var SCENARIOS       = ["working", "bridge", "retirement"];
         var activeScenario  = "working";
 
+        /* ── GLOBAL inflation-adjustment flag — not tied to any scenario ── */
+        var inflAdj = (localStorage.getItem("global_inflAdj") === "true");
+
         var FALLBACKS = {
-            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",  addition:"1,000", addFreq:"12", addTiming:"start", addSign: 1, inflAdj:false },
-            bridge:     { principal:"",          rate:"6.00", inflation:"2.50", compound:"12", duration:"10", addition:"7,500", addFreq:"12", addTiming:"start", addSign:-1, inflAdj:false },
-            retirement: { principal:"",          rate:"4.50", inflation:"3.00", compound:"12", duration:"40", addition:"8,500", addFreq:"12", addTiming:"start", addSign:-1, inflAdj:false }
+            working:    { principal:"1,070,000", rate:"7.00", inflation:"2.00", compound:"12", duration:"5",  addition:"1,000", addFreq:"12", addTiming:"start", addSign: 1 },
+            bridge:     { principal:"",          rate:"6.00", inflation:"2.50", compound:"12", duration:"10", addition:"7,500", addFreq:"12", addTiming:"start", addSign:-1 },
+            retirement: { principal:"",          rate:"4.50", inflation:"3.00", compound:"12", duration:"40", addition:"8,500", addFreq:"12", addTiming:"start", addSign:-1 }
         };
 
         var scenarioData = {
@@ -582,27 +581,23 @@
             return (rate === 0 || years === 0) ? nominal : nominal / Math.pow(1 + rate, years);
         }
 
-        /* ── CPI-adj toggle handlers ── */
-        function toggleInflAdj() {
+        /* ── Global CPI-adj toggle: persisted, scenario-independent ── */
+        function syncInflAdjUI() {
             var btn = document.getElementById("infl-adj-toggle");
-            var on  = btn.classList.toggle("active");
-            btn.textContent = on ? "ADJ" : "OFF";
+            btn.classList.toggle("active", inflAdj);
+            btn.textContent = inflAdj ? "ADJ" : "OFF";
+        }
+        function toggleInflAdj() {
+            inflAdj = !inflAdj;
+            localStorage.setItem("global_inflAdj", inflAdj);
+            syncInflAdjUI();
             calculate();
         }
-        function toggleDefInflAdj() {
-            var btn = document.getElementById("def-infl-adj-toggle");
-            var on  = btn.classList.toggle("active");
-            btn.textContent = on ? "ADJ" : "OFF";
-        }
-        function setInflAdjUI(on) {
-            var btn = document.getElementById("infl-adj-toggle");
-            btn.classList.toggle("active", on);
-            btn.textContent = on ? "ADJ" : "OFF";
-        }
-        function setDefInflAdjUI(on) {
-            var btn = document.getElementById("def-infl-adj-toggle");
-            btn.classList.toggle("active", on);
-            btn.textContent = on ? "ADJ" : "OFF";
+
+        /* payment scaled by per-period inflation growth */
+        function scaledPmt(base, inflPP, periodIndex) {
+            if (!inflAdj || inflPP === 0) return base;
+            return base * Math.pow(1 + inflPP, periodIndex);
         }
 
         function updatePurchaseYearOptions(selectedYear) {
@@ -628,37 +623,21 @@
             calculate();
         }
 
-        /*
-         * scaledPmt: returns the payment for a given compounding period index,
-         * optionally growing at the per-period inflation rate (CPI-adj mode).
-         *
-         * inflPerPeriod = (1 + annualInflation)^(1/n) - 1
-         * payment[k]    = basePmt * (1 + inflPerPeriod)^k
-         *
-         * This preserves real purchasing power: in year Y the nominal withdrawal
-         * is exactly what $basePmt buys in today's dollars.
-         */
-        function scaledPmt(basePmt, inflAdj, inflPerPeriod, periodIndex) {
-            if (!inflAdj || inflPerPeriod === 0) return basePmt;
-            return basePmt * Math.pow(1 + inflPerPeriod, periodIndex);
-        }
-
         function calcEndingBalance(d) {
-            var P        = rawNum(d.principal), r = (parseFloat(d.rate)||0)/100;
-            var n        = parseInt(d.compound)||1, t = parseInt(d.duration)||0;
-            var pmt      = rawNum(d.addition)*(d.addSign||1);
-            var pmtFreq  = parseInt(d.addFreq)||12, timing = d.addTiming||"start";
-            var inflAdj  = d.inflAdj||false;
-            var inflation= (parseFloat(d.inflation)||0)/100;
-            var inflPP   = inflAdj ? (Math.pow(1 + inflation, 1/n) - 1) : 0;
-            var rPP      = r/n, pmtPP = pmt*pmtFreq/n, bal = P;
-            var pActive  = d.purchaseEnabled||false, pAmt = rawNum(d.purchaseAmount);
-            var pYr      = parseInt(d.purchaseYear)||1, pMon = parseInt(d.purchaseMonth)||1;
-            var pPeriod  = (pYr-1)*n + Math.floor((pMon-1)*n/12);
-            var pApplied = false, gPeriod = 0;
+            var P       = rawNum(d.principal), r = (parseFloat(d.rate)||0)/100;
+            var n       = parseInt(d.compound)||1, t = parseInt(d.duration)||0;
+            var pmt     = rawNum(d.addition)*(d.addSign||1);
+            var pmtFreq = parseInt(d.addFreq)||12, timing = d.addTiming||"start";
+            var infl    = (parseFloat(d.inflation)||0)/100;
+            var inflPP  = inflAdj ? (Math.pow(1 + infl, 1/n) - 1) : 0;
+            var rPP     = r/n, pmtPP = pmt*pmtFreq/n, bal = P;
+            var pActive = d.purchaseEnabled||false, pAmt = rawNum(d.purchaseAmount);
+            var pYr     = parseInt(d.purchaseYear)||1, pMon = parseInt(d.purchaseMonth)||1;
+            var pPeriod = (pYr-1)*n + Math.floor((pMon-1)*n/12);
+            var pApplied= false, gPeriod = 0;
             for (var yr = 1; yr <= t; yr++) {
                 for (var p = 0; p < n; p++) {
-                    var sp = scaledPmt(pmtPP, inflAdj, inflPP, gPeriod);
+                    var sp = scaledPmt(pmtPP, inflPP, gPeriod);
                     if (timing==="start") { bal+=sp; bal+=bal*rPP; }
                     else { bal+=bal*rPP; bal+=sp; }
                     if (pActive && !pApplied && gPeriod===pPeriod) { bal-=pAmt; pApplied=true; }
@@ -670,20 +649,19 @@
 
         function saveScenarioData() {
             var d = scenarioData[activeScenario];
-            d.principal     = document.getElementById("principal").value;
-            d.rate          = document.getElementById("rate").value;
-            d.inflation     = document.getElementById("inflation").value;
-            d.inflAdj       = document.getElementById("infl-adj-toggle").classList.contains("active");
-            d.compound      = document.getElementById("compound").value;
-            d.duration      = document.getElementById("duration").value;
-            d.addition      = document.getElementById("addition").value;
-            d.addFreq       = document.getElementById("addFreq").value;
-            d.addTiming     = document.getElementById("addTiming").value;
-            d.addSign       = document.getElementById("pm-btn").classList.contains("negative")?-1:1;
-            d.purchaseEnabled = document.getElementById("purchase-toggle").classList.contains("active");
-            d.purchaseAmount= document.getElementById("purchase-amount").value;
-            d.purchaseMonth = document.getElementById("purchase-month").value;
-            d.purchaseYear  = document.getElementById("purchase-year").value;
+            d.principal      = document.getElementById("principal").value;
+            d.rate           = document.getElementById("rate").value;
+            d.inflation      = document.getElementById("inflation").value;
+            d.compound       = document.getElementById("compound").value;
+            d.duration       = document.getElementById("duration").value;
+            d.addition       = document.getElementById("addition").value;
+            d.addFreq        = document.getElementById("addFreq").value;
+            d.addTiming      = document.getElementById("addTiming").value;
+            d.addSign        = document.getElementById("pm-btn").classList.contains("negative")?-1:1;
+            d.purchaseEnabled= document.getElementById("purchase-toggle").classList.contains("active");
+            d.purchaseAmount = document.getElementById("purchase-amount").value;
+            d.purchaseMonth  = document.getElementById("purchase-month").value;
+            d.purchaseYear   = document.getElementById("purchase-year").value;
             localStorage.setItem(activeScenario+"_data", JSON.stringify(d));
         }
 
@@ -697,7 +675,6 @@
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
             document.getElementById("addTiming").value  = d.addTiming || "start";
-            setInflAdjUI(d.inflAdj || false);
             var btn = document.getElementById("pm-btn"), isNeg = (d.addSign===-1);
             btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
             var pActive = d.purchaseEnabled||false;
@@ -708,6 +685,7 @@
             document.getElementById("purchase-month").value     = d.purchaseMonth||"1";
             document.getElementById("purchase-when-row").classList.toggle("hidden", !pActive);
             updatePurchaseYearOptions(d.purchaseYear||"1");
+            /* inflAdj is global — do NOT touch it here */
         }
 
         function defaultsKey(scenario) { return (scenario || activeScenario) + "_defaults"; }
@@ -723,7 +701,6 @@
             document.getElementById("def-addition").value   = d.addition;
             document.getElementById("def-addFreq").value    = d.addFreq;
             document.getElementById("def-addTiming").value  = d.addTiming || "start";
-            setDefInflAdjUI(d.inflAdj || false);
             var btn = document.getElementById("def-pm-btn"), isNeg = (d.addSign===-1);
             btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
         }
@@ -733,7 +710,6 @@
                 principal: document.getElementById("def-principal").value,
                 rate:      document.getElementById("def-rate").value,
                 inflation: document.getElementById("def-inflation").value,
-                inflAdj:   document.getElementById("def-infl-adj-toggle").classList.contains("active"),
                 compound:  document.getElementById("def-compound").value,
                 duration:  document.getElementById("def-duration").value,
                 addition:  document.getElementById("def-addition").value,
@@ -757,7 +733,6 @@
             document.getElementById("addition").value   = d.addition;
             document.getElementById("addFreq").value    = d.addFreq;
             document.getElementById("addTiming").value  = d.addTiming || "start";
-            setInflAdjUI(d.inflAdj || false);
             var btn = document.getElementById("pm-btn"), isNeg = (d.addSign===-1);
             btn.classList.toggle("negative", isNeg); btn.textContent = isNeg ? "−" : "+";
             calculate();
@@ -800,7 +775,6 @@
             var P         = getField("principal");
             var r         = (parseFloat(document.getElementById("rate").value)||0)/100;
             var inflation = (parseFloat(document.getElementById("inflation").value)||0)/100;
-            var inflAdj   = document.getElementById("infl-adj-toggle").classList.contains("active");
             var n         = parseInt(document.getElementById("compound").value)||1;
             var t         = parseInt(document.getElementById("duration").value)||0;
             var addSign   = document.getElementById("pm-btn").classList.contains("negative")?-1:1;
@@ -813,17 +787,14 @@
             var pYr       = parseInt(document.getElementById("purchase-year").value)||1;
             var pPeriod   = (pYr-1)*n+Math.floor((pMon-1)*n/12);
             var pApplied  = false, pAppliedAmt = 0;
-
-            /* per-period inflation growth factor for CPI-adj mode */
             var inflPP    = inflAdj ? (Math.pow(1 + inflation, 1/n) - 1) : 0;
-
             var rPP=r/n, pmtPP=pmt*pmtFreq/n, bal=P;
             var totAdd=0, totInt=0, html="", gPeriod=0;
 
             for (var year=1; year<=t; year++) {
                 var opening=bal, yAdd=0, yInt=0, yCost=0;
                 for (var p=0; p<n; p++) {
-                    var sp = scaledPmt(pmtPP, inflAdj, inflPP, gPeriod);
+                    var sp = scaledPmt(pmtPP, inflPP, gPeriod);
                     var interest;
                     if (timing==="start") { bal+=sp; yAdd+=sp; interest=bal*rPP; bal+=interest; yInt+=interest; }
                     else { interest=bal*rPP; bal+=interest; yInt+=interest; bal+=sp; yAdd+=sp; }
@@ -889,8 +860,10 @@
         document.addEventListener("DOMContentLoaded", function() {
             SCENARIOS.forEach(function(s) {
                 var raw=localStorage.getItem(s+"_data");
-                if (raw) { try { var p=JSON.parse(raw); delete p.visited; scenarioData[s]=p; } catch(e){} }
+                if (raw) { try { var p=JSON.parse(raw); delete p.visited; delete p.inflAdj; scenarioData[s]=p; } catch(e){} }
             });
+
+            syncInflAdjUI();          /* restore global ADJ toggle from localStorage */
             loadDefaultsIntoPanel();
             switchTopTab("calculator");
             loadScenarioData("working");
